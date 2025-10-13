@@ -2,6 +2,7 @@ package Comandos
 
 import (
 	"MIA_2S2025_P1_202105668/Logica/Disk"
+	"MIA_2S2025_P1_202105668/Logica/System"
 	"MIA_2S2025_P1_202105668/Logica/Users"
 	"MIA_2S2025_P1_202105668/Models"
 	"errors"
@@ -132,6 +133,21 @@ func MkUsr(params map[string]string) error {
 	err = userManager.CreateUser(user, grp, password)
 	if err != nil {
 		return err
+	}
+
+	// Si es EXT3, registrar en el journal
+	if superBloque.S_filesystem_type == 3 {
+		systemMountInfo := &System.MountInfo{
+			DiskPath:      mountInfo.DiskPath,
+			PartitionName: mountInfo.PartitionName,
+			MountID:       mountInfo.MountID,
+			DiskLetter:    mountInfo.DiskLetter,
+			PartNumber:    mountInfo.PartNumber,
+		}
+		ext3Manager := System.NewEXT3Manager(systemMountInfo)
+		if ext3Manager != nil {
+			ext3Manager.LogOperation("mkusr", user, grp)
+		}
 	}
 
 	fmt.Printf("User: \"%s\" creado en el grupo \"%s\"\n", user, grp)

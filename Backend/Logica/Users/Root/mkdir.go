@@ -189,7 +189,8 @@ func MkDir(params map[string]string) error {
 		return fmt.Errorf("partición no encontrada: %v", err)
 	}
 
-	_, _, err = Users.GetPartitionAndSuperBlock(mountInfo)
+	// Obtener superbloque para verificar tipo de sistema de archivos
+	_, superBloque, err := Users.GetPartitionAndSuperBlock(mountInfo)
 	if err != nil {
 		return fmt.Errorf("error accediendo al sistema de archivos: %v", err)
 	}
@@ -227,21 +228,37 @@ func MkDir(params map[string]string) error {
 			// Dividir la ruta y crear directorios padre recursivamente
 			pathParts := strings.Split(strings.Trim(path, "/"), "/")
 			currentPath := ""
-			
+
 			for _, part := range pathParts {
 				if part == "" {
 					continue
 				}
 				currentPath = currentPath + "/" + part
-				
+
 				// Intentar crear cada directorio en la jerarquía
 				err = dirManager.CreateDirectory(currentPath, int32(session.UserID), int32(session.GroupID), int32(permissions))
 				if err != nil && !strings.Contains(err.Error(), "ya existe") {
 					return fmt.Errorf("error creando directorio '%s': %v", currentPath, err)
 				}
+
+				// Si es EXT3, registrar en el journal
+				if superBloque.S_filesystem_type == 3 {
+					ext3Manager := System.NewEXT3Manager(systemMountInfo)
+					if ext3Manager != nil {
+						ext3Manager.LogOperation("mkdir", currentPath, "")
+					}
+				}
 			}
 		} else {
 			return err
+		}
+	} else {
+		// Si es EXT3, registrar en el journal
+		if superBloque.S_filesystem_type == 3 {
+			ext3Manager := System.NewEXT3Manager(systemMountInfo)
+			if ext3Manager != nil {
+				ext3Manager.LogOperation("mkdir", path, "")
+			}
 		}
 	}
 

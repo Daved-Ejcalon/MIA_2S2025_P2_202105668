@@ -20,6 +20,11 @@ func NewEXT2FileManager(manager *EXT2Manager) *EXT2FileManager {
 	}
 }
 
+// GetManager retorna el EXT2Manager asociado
+func (f *EXT2FileManager) GetManager() *EXT2Manager {
+	return f.manager
+}
+
 // ReadFileContent lee el contenido completo de un archivo desde el sistema EXT2
 func (f *EXT2FileManager) ReadFileContent(filePath string) (string, error) {
 	// Buscar el inodo del archivo

@@ -5,9 +5,9 @@ import (
 	"unsafe"
 )
 
-// SuperBloque contiene metadatos del sistema de archivos EXT2
+// SuperBloque contiene metadatos del sistema de archivos EXT2/EXT3
 type SuperBloque struct {
-	S_filesystem_type   int32   // Tipo de sistema de archivos (2 = EXT2)
+	S_filesystem_type   int32   // Tipo de sistema de archivos (2 = EXT2, 3 = EXT3)
 	S_inodes_count      int32   // Total de inodos en el sistema
 	S_blocks_count      int32   // Total de bloques en el sistema
 	S_free_blocks_count int32   // Bloques libres disponibles
@@ -245,4 +245,84 @@ func SetPermissions(octal int32) [3]byte {
 func GetPermissions(perms [3]byte) int32 {
 	// Convertir formato [7,5,5] a permisos octales (755)
 	return int32(perms[0])*100 + int32(perms[1])*10 + int32(perms[2])
+}
+
+// ========== EXT3 - JOURNALING STRUCTURES ==========
+
+// Journal almacena la bitacora de todas las acciones en el sistema de archivos EXT3
+type Journal struct {
+	J_count   int32         // Lleva el conteo del journal
+	J_content [64]Information // Consiste toda la informacion de la accion que se hizo
+}
+
+// Information es el contenido que va a llevar el journal
+type Information struct {
+	I_operation [10]byte // Contiene la operacion que se realizo
+	I_path      [32]byte // Contiene el path donde se realizo la operacion
+	I_content   [64]byte // Contiene todo el contenido (SI es un archivo)
+	I_date      float64  // Contiene la fecha en la que se hizo la operacion
+}
+
+const (
+	JOURNAL_SIZE        = 8192 // Tamano del journal en bytes
+	JOURNAL_MAX_ENTRIES = 64   // Numero maximo de entradas en el journal
+)
+
+// NewJournal crea un nuevo journal para EXT3
+func NewJournal() Journal {
+	journal := Journal{
+		J_count: 0,
+	}
+
+	// Inicializar todas las entradas como vacias
+	for i := range journal.J_content {
+		journal.J_content[i].I_date = 0
+		for j := range journal.J_content[i].I_operation {
+			journal.J_content[i].I_operation[j] = 0
+		}
+	}
+
+	return journal
+}
+
+// NewInformation crea una nueva entrada de information para el journal
+func NewInformation(operation string, path string, content string) Information {
+	info := Information{
+		I_date: float64(time.Now().Unix()),
+	}
+
+	copy(info.I_operation[:], operation)
+	copy(info.I_path[:], path)
+	if len(content) > 0 {
+		copy(info.I_content[:], content)
+	}
+
+	return info
+}
+
+// GetOperation retorna la operacion como string
+func (i *Information) GetOperation() string {
+	n := 0
+	for n < len(i.I_operation) && i.I_operation[n] != 0 {
+		n++
+	}
+	return string(i.I_operation[:n])
+}
+
+// GetPath retorna el path como string
+func (i *Information) GetPath() string {
+	n := 0
+	for n < len(i.I_path) && i.I_path[n] != 0 {
+		n++
+	}
+	return string(i.I_path[:n])
+}
+
+// GetContent retorna el contenido como string
+func (i *Information) GetContent() string {
+	n := 0
+	for n < len(i.I_content) && i.I_content[n] != 0 {
+		n++
+	}
+	return string(i.I_content[:n])
 }

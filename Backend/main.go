@@ -3,8 +3,10 @@ package main
 import (
 	"MIA_2S2025_P1_202105668/Logica/Disk"
 	"MIA_2S2025_P1_202105668/Logica/Reportes"
+	"MIA_2S2025_P1_202105668/Logica/System"
 	"MIA_2S2025_P1_202105668/Logica/Users"
 	"MIA_2S2025_P1_202105668/Logica/Users/Comandos"
+	"MIA_2S2025_P1_202105668/Logica/Users/Operations"
 	"MIA_2S2025_P1_202105668/Logica/Users/Root"
 	"bufio"
 	"encoding/json"
@@ -88,6 +90,8 @@ func processCommand(input string) error {
 		return processFdisk(params)
 	case "mount":
 		return processMount(params)
+	case "unmount":
+		return processUnmount(params)
 	case "mounted":
 		Disk.Mounted()
 		return nil
@@ -115,6 +119,28 @@ func processCommand(input string) error {
 		return Root.MkDir(params)
 	case "mkfile":
 		return Root.MkFile(params)
+	case "remove":
+		return Operations.Remove(params)
+	case "edit":
+		return Operations.Edit(params)
+	case "rename":
+		return Operations.Rename(params)
+	case "copy":
+		return Operations.Copy(params)
+	case "move":
+		return Operations.Move(params)
+	case "find":
+		return Operations.Find(params)
+	case "chown":
+		return Operations.Chown(params)
+	case "chmod":
+		return Operations.Chmod(params)
+	case "recovery":
+		return processRecovery(params)
+	case "loss":
+		return processLoss(params)
+	case "journaling":
+		return processJournaling(params)
 	case "rep":
 		return processRep(params)
 	default:
@@ -188,12 +214,14 @@ func processRmdisk(params map[string]string) error {
 func processFdisk(params map[string]string) error {
 	// Validar que solo se usen parámetros permitidos
 	validParams := map[string]bool{
-		"size": true,
-		"unit": true,
-		"fit":  true,
-		"path": true,
-		"type": true,
-		"name": true,
+		"size":   true,
+		"unit":   true,
+		"fit":    true,
+		"path":   true,
+		"type":   true,
+		"name":   true,
+		"delete": true,
+		"add":    true,
 	}
 
 	for param := range params {
@@ -202,6 +230,51 @@ func processFdisk(params map[string]string) error {
 		}
 	}
 
+	// Verificar si es operación de eliminación
+	deleteMode := params["delete"]
+
+	// Si es eliminación, solo requiere path, name y delete
+	if deleteMode != "" {
+		path := params["path"]
+		if path == "" {
+			return fmt.Errorf("parametro -path requerido")
+		}
+
+		name := params["name"]
+		if name == "" {
+			return fmt.Errorf("parametro -name requerido")
+		}
+
+		return Disk.Fdisk(0, "", "", path, "", name, deleteMode, 0)
+	}
+
+	// Verificar si es operación de redimensionamiento
+	addStr := params["add"]
+	if addStr != "" {
+		path := params["path"]
+		if path == "" {
+			return fmt.Errorf("parametro -path requerido")
+		}
+
+		name := params["name"]
+		if name == "" {
+			return fmt.Errorf("parametro -name requerido")
+		}
+
+		add, err := strconv.ParseInt(addStr, 10, 64)
+		if err != nil {
+			return fmt.Errorf("add invalido: %v", err)
+		}
+
+		unit := params["unit"]
+		if unit == "" {
+			unit = "K"
+		}
+
+		return Disk.Fdisk(0, unit, "", path, "", name, "", add)
+	}
+
+	// Operación de creación - validar parámetros requeridos
 	sizeStr, hasSize := params["size"]
 	if !hasSize {
 		return fmt.Errorf("parametro -size requerido")
@@ -237,7 +310,7 @@ func processFdisk(params map[string]string) error {
 		return fmt.Errorf("parametro -name requerido")
 	}
 
-	return Disk.Fdisk(size, unit, fit, path, ptype, name)
+	return Disk.Fdisk(size, unit, fit, path, ptype, name, "", 0)
 }
 
 func processMount(params map[string]string) error {
@@ -266,11 +339,32 @@ func processMount(params map[string]string) error {
 	return Disk.Mount(path, name)
 }
 
+func processUnmount(params map[string]string) error {
+	// Validar que solo se usen parámetros permitidos
+	validParams := map[string]bool{
+		"id": true,
+	}
+
+	for param := range params {
+		if !validParams[param] {
+			return fmt.Errorf("parametro -%s no es valido para unmount", param)
+		}
+	}
+
+	id := params["id"]
+	if id == "" {
+		return fmt.Errorf("parametro -id requerido")
+	}
+
+	return Disk.UnmountPartition(id)
+}
+
 func processMkfs(params map[string]string) error {
 	// Validar que solo se usen parámetros permitidos
 	validParams := map[string]bool{
 		"id":   true,
 		"type": true,
+		"fs":   true,
 	}
 
 	for param := range params {
@@ -284,7 +378,106 @@ func processMkfs(params map[string]string) error {
 		return fmt.Errorf("parametro -id requerido")
 	}
 
-	return Disk.Mkfs(id)
+	// Parámetro type (opcional, default "full")
+	formatType := params["type"]
+	if formatType == "" {
+		formatType = "full"
+	}
+
+	// Parámetro fs (opcional, default "2fs" para EXT2)
+	fs := params["fs"]
+	if fs == "" {
+		fs = "2fs"
+	}
+
+	return Disk.Mkfs(id, formatType, fs)
+}
+
+func processRecovery(params map[string]string) error {
+	id := params["id"]
+	if id == "" {
+		return fmt.Errorf("parametro -id requerido")
+	}
+
+	mountInfo, err := Disk.GetMountInfoByID(id)
+	if err != nil {
+		return fmt.Errorf("particion con id '%s' no esta montada", id)
+	}
+
+	systemMountInfo := &System.MountInfo{
+		DiskPath:      mountInfo.DiskPath,
+		PartitionName: mountInfo.PartitionName,
+		MountID:       mountInfo.MountID,
+		DiskLetter:    mountInfo.DiskLetter,
+		PartNumber:    mountInfo.PartNumber,
+	}
+
+	ext2Manager := System.NewEXT2Manager(systemMountInfo)
+	if ext2Manager == nil {
+		return fmt.Errorf("error inicializando gestor de archivos")
+	}
+
+	partitionInfo := ext2Manager.GetPartitionInfo()
+	recoveryManager := System.NewRecoveryManager(mountInfo.DiskPath, partitionInfo)
+	return recoveryManager.RecoverFileSystem()
+}
+
+func processLoss(params map[string]string) error {
+	id := params["id"]
+	if id == "" {
+		return fmt.Errorf("parametro -id requerido")
+	}
+
+	mountInfo, err := Disk.GetMountInfoByID(id)
+	if err != nil {
+		return fmt.Errorf("particion con id '%s' no esta montada", id)
+	}
+
+	systemMountInfo := &System.MountInfo{
+		DiskPath:      mountInfo.DiskPath,
+		PartitionName: mountInfo.PartitionName,
+		MountID:       mountInfo.MountID,
+		DiskLetter:    mountInfo.DiskLetter,
+		PartNumber:    mountInfo.PartNumber,
+	}
+
+	ext2Manager := System.NewEXT2Manager(systemMountInfo)
+	if ext2Manager == nil {
+		return fmt.Errorf("error inicializando gestor de archivos")
+	}
+
+	partitionInfo := ext2Manager.GetPartitionInfo()
+	lossSimulator := System.NewLossSimulator(mountInfo.DiskPath, partitionInfo)
+	return lossSimulator.SimulateSystemLoss()
+}
+
+func processJournaling(params map[string]string) error {
+	id := params["id"]
+	if id == "" {
+		return fmt.Errorf("parametro -id requerido")
+	}
+
+	mountInfo, err := Disk.GetMountInfoByID(id)
+	if err != nil {
+		return fmt.Errorf("particion con id '%s' no esta montada", id)
+	}
+
+	systemMountInfo := &System.MountInfo{
+		DiskPath:      mountInfo.DiskPath,
+		PartitionName: mountInfo.PartitionName,
+		MountID:       mountInfo.MountID,
+		DiskLetter:    mountInfo.DiskLetter,
+		PartNumber:    mountInfo.PartNumber,
+	}
+
+	ext2Manager := System.NewEXT2Manager(systemMountInfo)
+	if ext2Manager == nil {
+		return fmt.Errorf("error inicializando gestor de archivos")
+	}
+
+	partitionInfo := ext2Manager.GetPartitionInfo()
+	journalingViewer := System.NewJournalingViewer(mountInfo.DiskPath, partitionInfo)
+	return journalingViewer.ShowJournal()
 }
 
 func parseParameters(args []string) map[string]string {
@@ -454,10 +647,45 @@ func executeCommandHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
+func getDisksHandler(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Obtener información de todos los discos
+	disks, err := Disk.GetAllDisksInfo()
+
+	type DisksResponse struct {
+		Disks []Disk.DiskInfo `json:"disks"`
+		Error string          `json:"error,omitempty"`
+	}
+
+	resp := DisksResponse{
+		Disks: disks,
+	}
+
+	if err != nil {
+		resp.Error = err.Error()
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
 func startServer() {
 	http.HandleFunc("/execute", executeCommandHandler)
+	http.HandleFunc("/disks", getDisksHandler)
 
-	fmt.Println("Ctrl+C")
+	fmt.Println("Servidor iniciado en http://localhost:8080")
+	fmt.Println("Ctrl+C para detener")
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

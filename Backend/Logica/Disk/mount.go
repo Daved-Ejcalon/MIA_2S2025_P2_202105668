@@ -166,22 +166,70 @@ func GetMountedPartitions() []MountInfo {
 func UnmountPartition(mountID string) error {
 	initMountSystem()
 
-	// Buscar y remover la partición de la lista
-	for i, mount := range mountedPartitions {
-		if mount.MountID == mountID {
-			mountedPartitions = append(mountedPartitions[:i], mountedPartitions[i+1:]...)
-			diskPartitionCount[mount.DiskPath]--
-			// Limpiar mapas si no quedan particiones del disco
-			if diskPartitionCount[mount.DiskPath] == 0 {
-				delete(diskLetterMap, mount.DiskPath)
-				delete(diskPartitionCount, mount.DiskPath)
-			}
-
-			return nil
+	// Buscar la partición montada
+	var mountIndex = -1
+	var mount MountInfo
+	for i, m := range mountedPartitions {
+		if m.MountID == mountID {
+			mountIndex = i
+			mount = m
+			break
 		}
 	}
 
-	return fmt.Errorf("ID no encontrado")
+	if mountIndex == -1 {
+		return fmt.Errorf("ID no encontrado")
+	}
+
+	// Abrir el disco para actualizar el correlativo
+	file, err := os.OpenFile(mount.DiskPath, os.O_RDWR, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var mbr Models.MBR
+	file.Seek(0, 0)
+	err = binary.Read(file, binary.LittleEndian, &mbr)
+	if err != nil {
+		return err
+	}
+
+	// Buscar y actualizar la partición en el MBR
+	updated := false
+	for i := range mbr.Partitions {
+		if mbr.Partitions[i].GetName() == mount.PartitionName && mbr.Partitions[i].PartStatus != 0 {
+			mbr.Partitions[i].PartCorrelative = 0
+			updated = true
+			break
+		}
+	}
+
+	// Si no se encontró en el MBR, buscar en particiones lógicas
+	if !updated {
+		err = updateLogicalPartitionCorrelative(file, &mbr, mount.PartitionName, 0)
+		if err == nil {
+			updated = true
+		}
+	}
+
+	// Escribir MBR actualizado si hubo cambios
+	if updated {
+		file.Seek(0, 0)
+		binary.Write(file, binary.LittleEndian, &mbr)
+	}
+
+	// Remover de la lista de montadas
+	mountedPartitions = append(mountedPartitions[:mountIndex], mountedPartitions[mountIndex+1:]...)
+	diskPartitionCount[mount.DiskPath]--
+
+	// Limpiar mapas si no quedan particiones del disco
+	if diskPartitionCount[mount.DiskPath] == 0 {
+		delete(diskLetterMap, mount.DiskPath)
+		delete(diskPartitionCount, mount.DiskPath)
+	}
+
+	return nil
 }
 
 // ShowMountedPartitions muestra las particiones montadas (implementación pendiente)
@@ -302,4 +350,36 @@ func updateLogicalPartitionEBR(file *os.File, mbr *Models.MBR, name string, moun
 	}
 
 	return fmt.Errorf("no se pudo encontrar EBR para partición lógica %s", name)
+}
+
+// updateLogicalPartitionCorrelative actualiza el correlativo de una partición lógica en su EBR
+func updateLogicalPartitionCorrelative(file *os.File, mbr *Models.MBR, name string, correlative int64) error {
+	for _, partition := range mbr.Partitions {
+		if partition.PartType == 'E' && partition.PartStatus != 0 {
+			currentEBRPos := partition.PartStart
+
+			for currentEBRPos != Models.EBR_END {
+				file.Seek(currentEBRPos, 0)
+				var ebr Models.EBR
+				err := binary.Read(file, binary.LittleEndian, &ebr)
+				if err != nil {
+					break
+				}
+
+				if ebr.GetLogicalPartitionName() == name && ebr.PartS > 0 {
+					ebr.PartMount = byte(correlative)
+					file.Seek(currentEBRPos, 0)
+					binary.Write(file, binary.LittleEndian, &ebr)
+					return nil
+				}
+
+				if ebr.PartNext == Models.EBR_END {
+					break
+				}
+				currentEBRPos = ebr.PartNext
+			}
+		}
+	}
+
+	return fmt.Errorf("")
 }

@@ -10,13 +10,24 @@ import (
 	"strings"
 )
 
-// Fdisk crea particiones en un disco virtual existente (primarias, extendidas o lógicas)
-func Fdisk(size int64, unit string, fit string, path string, ptype string, name string) error {
+// Fdisk crea, elimina o modifica particiones en un disco virtual existente (primarias, extendidas o lógicas)
+func Fdisk(size int64, unit string, fit string, path string, ptype string, name string, deleteMode string, add int64) error {
 	unit = strings.ToUpper(unit)
 	fit = strings.ToUpper(fit)
 	ptype = strings.ToUpper(ptype)
+	deleteMode = strings.ToUpper(deleteMode)
 
-	// Validaciones básicas de entrada
+	// Si deleteMode está especificado, ejecutar lógica de eliminación
+	if deleteMode != "" {
+		return deleteFdisk(path, name, deleteMode)
+	}
+
+	// Si add está especificado, ejecutar lógica de redimensionamiento
+	if add != 0 {
+		return resizeFdisk(path, name, add, unit)
+	}
+
+	// Validaciones básicas de entrada para creación
 	if size <= 0 {
 		return fmt.Errorf("tamaño inválido")
 	}
@@ -193,4 +204,165 @@ func fitToByte(fit string) byte {
 		return Models.FIT_FIRST
 	}
 	return Models.FIT_WORST
+}
+
+// deleteFdisk elimina una partición del disco (Fast o Full)
+func deleteFdisk(path string, name string, deleteMode string) error {
+	// Validar modo de eliminación
+	if deleteMode != "FAST" && deleteMode != "FULL" {
+		return fmt.Errorf("modo de eliminación inválido: use FAST o FULL")
+	}
+
+	file, err := os.OpenFile(path, os.O_RDWR, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Leer MBR
+	var mbr Models.MBR
+	file.Seek(0, 0)
+	err = binary.Read(file, binary.LittleEndian, &mbr)
+	if err != nil {
+		return err
+	}
+
+	// Buscar la partición por nombre
+	partitionIndex := -1
+	var targetPartition *Models.Partition
+	for i := range mbr.Partitions {
+		p := &mbr.Partitions[i]
+		if p.PartStatus != 0 && p.GetName() == name {
+			partitionIndex = i
+			targetPartition = p
+			break
+		}
+	}
+
+	if partitionIndex == -1 {
+		return fmt.Errorf("partición '%s' no existe", name)
+	}
+
+	// Si es partición extendida, eliminar particiones lógicas en cascada
+	if targetPartition.PartType == 'E' {
+		deleteLogicalPartitions(file, targetPartition, deleteMode)
+	}
+
+	// Modo FULL: rellenar con \0
+	if deleteMode == "FULL" {
+		zeros := make([]byte, targetPartition.PartSize)
+		file.Seek(targetPartition.PartStart, 0)
+		file.Write(zeros)
+	}
+
+	// Marcar partición como vacía en la tabla
+	mbr.Partitions[partitionIndex] = Models.Partition{
+		PartStatus:      0,
+		PartType:        0,
+		PartFit:         0,
+		PartStart:       0,
+		PartSize:        0,
+		PartCorrelative: -1,
+	}
+
+	// Escribir MBR actualizado
+	file.Seek(0, 0)
+	binary.Write(file, binary.LittleEndian, &mbr)
+
+	// Mensaje de éxito
+	fmt.Printf("Partición '%s' eliminada exitosamente\n", name)
+
+	return nil
+}
+
+// deleteLogicalPartitions elimina todas las particiones lógicas dentro de una extendida
+func deleteLogicalPartitions(file *os.File, extended *Models.Partition, deleteMode string) {
+	if deleteMode == "FULL" {
+		zeros := make([]byte, extended.PartSize)
+		file.Seek(extended.PartStart, 0)
+		file.Write(zeros)
+	}
+}
+
+// resizeFdisk redimensiona una partición existente (agregar o quitar espacio)
+func resizeFdisk(path string, name string, add int64, unit string) error {
+	unit = strings.ToUpper(unit)
+
+	// Convertir add a bytes según la unidad
+	if unit == "" {
+		unit = "K"
+	}
+	switch unit {
+	case "B":
+		// add ya está en bytes
+	case "K":
+		add *= 1024
+	case "M":
+		add *= 1024 * 1024
+	}
+
+	file, err := os.OpenFile(path, os.O_RDWR, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var mbr Models.MBR
+	file.Seek(0, 0)
+	err = binary.Read(file, binary.LittleEndian, &mbr)
+	if err != nil {
+		return err
+	}
+
+	// Buscar la partición por nombre
+	partitionIndex := -1
+	var targetPartition *Models.Partition
+	for i := range mbr.Partitions {
+		p := &mbr.Partitions[i]
+		if p.PartStatus != 0 && p.GetName() == name {
+			partitionIndex = i
+			targetPartition = p
+			break
+		}
+	}
+
+	if partitionIndex == -1 {
+		return errors.New("")
+	}
+
+	// Calcular nuevo tamaño
+	newSize := targetPartition.PartSize + add
+
+	// Validar que no quede espacio negativo al quitar
+	if newSize <= 0 {
+		return errors.New("")
+	}
+
+	// Si se está agregando espacio, validar que hay espacio libre después
+	if add > 0 {
+		endPosition := targetPartition.PartStart + targetPartition.PartSize
+		nextStart := mbr.MbrSize // Por defecto, el final del disco
+
+		// Buscar la siguiente partición
+		for i := range mbr.Partitions {
+			p := &mbr.Partitions[i]
+			if p.PartStatus != 0 && p.PartStart > targetPartition.PartStart && p.PartStart < nextStart {
+				nextStart = p.PartStart
+			}
+		}
+
+		availableSpace := nextStart - endPosition
+		if add > availableSpace {
+			return errors.New("")
+		}
+	}
+
+	// Actualizar el tamaño de la partición
+	mbr.Partitions[partitionIndex].PartSize = newSize
+
+	// Escribir MBR actualizado
+	file.Seek(0, 0)
+	binary.Write(file, binary.LittleEndian, &mbr)
+
+	return nil
 }

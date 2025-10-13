@@ -403,3 +403,29 @@ func (e *EXT2Manager) addFileToRootDirectory(filename string, inodoNumber int32)
 
 	return nil
 }
+
+// ========== GETTER Y SETTER METHODS ==========
+
+func (e *EXT2Manager) GetDiskPath() string {
+	return e.diskPath
+}
+
+func (e *EXT2Manager) SetDiskPath(path string) {
+	e.diskPath = path
+}
+
+func (e *EXT2Manager) GetPartitionInfo() *Models.Partition {
+	return e.partitionInfo
+}
+
+func (e *EXT2Manager) SetPartitionInfo(partition *Models.Partition) {
+	e.partitionInfo = partition
+}
+
+func (e *EXT2Manager) GetSuperBlock() *Models.SuperBloque {
+	return e.superBloque
+}
+
+func (e *EXT2Manager) SetSuperBlock(sb *Models.SuperBloque) {
+	e.superBloque = sb
+}

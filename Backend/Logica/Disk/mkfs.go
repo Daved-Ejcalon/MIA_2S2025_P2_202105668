@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-// Mkfs formatea una partición montada con sistema de archivos EXT2
-func Mkfs(mountID string) error {
+// Mkfs formatea una partición montada con sistema de archivos EXT2 o EXT3
+func Mkfs(mountID string, formatType string, fs string) error {
 	// Validar que el ID de montaje esté presente
 	if mountID == "" {
 		return fmt.Errorf("parametro -id requerido")
@@ -27,12 +27,35 @@ func Mkfs(mountID string) error {
 		PartNumber:    mountInfo.PartNumber,
 	}
 
-	// Inicializar EXT2 manager y formatear la partición
-	ext2Manager := System.NewEXT2Manager(systemMountInfo)
+	// Seleccionar el tipo de sistema de archivos
+	if fs == "3fs" {
+		// Formatear con EXT3
+		ext3Manager := System.NewEXT3Manager(systemMountInfo)
+		if ext3Manager == nil {
+			return fmt.Errorf("error inicializando EXT3")
+		}
 
-	err = ext2Manager.FormatPartition()
-	if err != nil {
-		return fmt.Errorf("fallo el formateo: %v", err)
+		err = ext3Manager.FormatPartition()
+		if err != nil {
+			return err
+		}
+
+		// Registrar la operación de formato en el journal
+		err = ext3Manager.LogOperation("mkfs", "format", "EXT3")
+		if err != nil {
+			return fmt.Errorf("error registrando operación de formato en journal: %v", err)
+		}
+	} else {
+		// Formatear con EXT2 (default)
+		ext2Manager := System.NewEXT2Manager(systemMountInfo)
+		if ext2Manager == nil {
+			return fmt.Errorf("error inicializando EXT2")
+		}
+
+		err = ext2Manager.FormatPartition()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

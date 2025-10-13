@@ -214,7 +214,8 @@ func MkFile(params map[string]string) error {
 		return fmt.Errorf("partición no encontrada: %v", err)
 	}
 
-	_, _, err = Users.GetPartitionAndSuperBlock(mountInfo)
+	// Obtener superbloque para verificar tipo de sistema de archivos
+	_, superBloque, err := Users.GetPartitionAndSuperBlock(mountInfo)
 	if err != nil {
 		return fmt.Errorf("error accediendo al sistema de archivos: %v", err)
 	}
@@ -290,6 +291,19 @@ func MkFile(params map[string]string) error {
 	err = fileManager.WriteFileContent(path, fileContent, int32(session.UserID), int32(session.GroupID), 664)
 	if err != nil {
 		return err
+	}
+
+	// Si es EXT3, registrar en el journal
+	if superBloque.S_filesystem_type == 3 {
+		ext3Manager := System.NewEXT3Manager(systemMountInfo)
+		if ext3Manager != nil {
+			// Limitar contenido a 64 bytes para el journal
+			contentForJournal := fileContent
+			if len(contentForJournal) > 64 {
+				contentForJournal = fileContent[:64]
+			}
+			ext3Manager.LogOperation("mkfile", path, contentForJournal)
+		}
 	}
 
 	fmt.Printf("Archivo '%s' creado exitosamente (tamaño: %d bytes)\n", path, len(fileContent))
