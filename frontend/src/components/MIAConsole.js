@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './MIAConsole.css';
+import FileSystemVisualizer from './FileSystemVisualizer';
 
 const MIAConsole = () => {
   const [command, setCommand] = useState('');
@@ -7,6 +8,15 @@ const MIAConsole = () => {
   const [commandHistory, setCommandHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showVisualizer, setShowVisualizer] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [sessionInfo, setSessionInfo] = useState(null);
+  const [loginData, setLoginData] = useState({
+    id: '',
+    user: '',
+    pass: ''
+  });
   const outputRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -215,13 +225,187 @@ const MIAConsole = () => {
     }
   };
 
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!loginData.id || !loginData.user || !loginData.pass) {
+      alert('Por favor completa todos los campos');
+      return;
+    }
+
+    const loginCommand = `login -user=${loginData.user} -pass=${loginData.pass} -id=${loginData.id}`;
+
+    setShowLoginModal(false);
+
+    // Ejecutar comando de login
+    try {
+      const response = await fetch('http://localhost:8080/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command: loginCommand }),
+      });
+
+      const result = await response.json();
+
+      const resultOutput = {
+        type: result.error ? 'error' : 'success',
+        content: result.error || result.output || 'Login exitoso',
+        timestamp: new Date().toLocaleTimeString()
+      };
+
+      setOutput(prev => [...prev, {
+        type: 'command',
+        content: `MIA> ${loginCommand}`,
+        timestamp: new Date().toLocaleTimeString()
+      }, resultOutput]);
+
+      // Si el login fue exitoso, actualizar estado
+      if (!result.error) {
+        setIsLoggedIn(true);
+        setSessionInfo({
+          username: loginData.user,
+          mountID: loginData.id
+        });
+      }
+    } catch (error) {
+      const errorOutput = {
+        type: 'error',
+        content: `Error de conexión: ${error.message}`,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setOutput(prev => [...prev, errorOutput]);
+    }
+
+    setLoginData({ id: '', user: '', pass: '' });
+  };
+
+  const handleLoginChange = (e) => {
+    const { name, value } = e.target;
+    setLoginData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command: 'logout' }),
+      });
+
+      const result = await response.json();
+
+      const resultOutput = {
+        type: result.error ? 'error' : 'success',
+        content: result.error || result.output || 'Logout exitoso',
+        timestamp: new Date().toLocaleTimeString()
+      };
+
+      setOutput(prev => [...prev, {
+        type: 'command',
+        content: 'MIA> logout',
+        timestamp: new Date().toLocaleTimeString()
+      }, resultOutput]);
+
+      // Actualizar estado de sesión
+      setIsLoggedIn(false);
+      setSessionInfo(null);
+      setShowVisualizer(false);
+    } catch (error) {
+      const errorOutput = {
+        type: 'error',
+        content: `Error de conexión: ${error.message}`,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setOutput(prev => [...prev, errorOutput]);
+    }
+  };
+
   return (
     <div className="mia-console">
+      {/* Login Modal */}
+      {showLoginModal && (
+        <div className="modal-overlay" onClick={() => setShowLoginModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Iniciar Sesión</h2>
+              <button className="close-btn" onClick={() => setShowLoginModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleLoginSubmit} className="login-form">
+              <div className="form-group">
+                <label htmlFor="id">ID Partición:</label>
+                <input
+                  type="text"
+                  id="id"
+                  name="id"
+                  value={loginData.id}
+                  onChange={handleLoginChange}
+                  placeholder="Ej: 681A"
+                  autoFocus
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="user">Usuario:</label>
+                <input
+                  type="text"
+                  id="user"
+                  name="user"
+                  value={loginData.user}
+                  onChange={handleLoginChange}
+                  placeholder="Ej: root"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="pass">Contraseña:</label>
+                <input
+                  type="password"
+                  id="pass"
+                  name="pass"
+                  value={loginData.pass}
+                  onChange={handleLoginChange}
+                  placeholder="Ingresa la contraseña"
+                />
+              </div>
+              <div className="form-actions">
+                <button type="button" className="cancel-btn" onClick={() => setShowLoginModal(false)}>
+                  Cancelar
+                </button>
+                <button type="submit" className="login-btn">
+                  Iniciar Sesión
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="console-container">
         {/* Cuadro de entrada de comandos */}
         <div className="input-section">
           <div className="section-header">
             <h3>Entrada de Comandos</h3>
+            <div className="header-buttons">
+              {!isLoggedIn ? (
+                <button className="login-header-btn" onClick={() => setShowLoginModal(true)}>
+                  Login
+                </button>
+              ) : (
+                <>
+                  <button className="visualizer-btn" onClick={() => setShowVisualizer(!showVisualizer)}>
+                    {showVisualizer ? 'Consola' : 'Visualizador'}
+                  </button>
+                  <button className="logout-btn" onClick={handleLogout}>
+                    Logout ({sessionInfo?.username})
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
           {/* File upload section */}
@@ -265,19 +449,26 @@ const MIAConsole = () => {
           </form>
         </div>
 
-        {/* Cuadro de salida */}
+        {/* Cuadro de salida / Visualizador */}
         <div className="output-section">
           <div className="section-header">
-            <h3>Salida del Sistema</h3>
+            <h3>{showVisualizer ? 'Visualizador del Sistema' : 'Salida del Sistema'}</h3>
           </div>
-          <div className="console-output" ref={outputRef}>
-            {output.map((item, index) => (
-              <div key={index} className={`output-line ${item.type}`}>
-                <span className="timestamp">[{item.timestamp}]</span>
-                <pre className="content">{item.content}</pre>
-              </div>
-            ))}
-          </div>
+          {showVisualizer ? (
+            <FileSystemVisualizer
+              isLoggedIn={isLoggedIn}
+              sessionInfo={sessionInfo}
+            />
+          ) : (
+            <div className="console-output" ref={outputRef}>
+              {output.map((item, index) => (
+                <div key={index} className={`output-line ${item.type}`}>
+                  <span className="timestamp">[{item.timestamp}]</span>
+                  <pre className="content">{item.content}</pre>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

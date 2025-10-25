@@ -1,0 +1,489 @@
+.visualizer-container {
+  width: 100%;
+  height: 100%;
+  padding: 15px;
+  background: transparent;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollbar para visualizer-container */
+.visualizer-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.visualizer-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.visualizer-container::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 10px;
+}
+
+.visualizer-container::-webkit-scrollbar-thumb:hover {
+  background: #5568d3;
+}
+
+.visualizer-header {
+  display: none;
+}
+
+/* Not logged in state */
+.not-logged-in {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
+}
+
+.not-logged-in h2 {
+  color: #ff6b6b;
+  font-size: 1.8em;
+  margin-bottom: 15px;
+}
+
+.not-logged-in p {
+  color: #ccc;
+  font-size: 1.1em;
+}
+
+/* Loading state */
+.loading {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
+}
+
+.loading h2 {
+  color: #667eea;
+  font-size: 1.6em;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Error state */
+.error-message {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
+}
+
+.error-message h2 {
+  color: #e74c3c;
+  margin-bottom: 15px;
+}
+
+.error-message p {
+  color: #ccc;
+  margin-bottom: 20px;
+  font-size: 1.05em;
+}
+
+.retry-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 90px;
+  height: 36px;
+  font-weight: 500;
+}
+
+.retry-btn:hover {
+  background: #5568d3;
+}
+
+/* Disk Selection */
+.disk-selection {
+  background: transparent;
+  border-radius: 0;
+  padding: 10px;
+  box-shadow: none;
+  border: none;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.disk-selection h2 {
+  color: #fff;
+  font-size: 1.3em;
+  margin-bottom: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.no-disks {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+  font-size: 1.1em;
+}
+
+.no-disks code {
+  background: #1a1a1a;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #667eea;
+  font-weight: 600;
+  border: 1px solid #333;
+}
+
+.disk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 10px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  justify-items: center;
+  align-content: start;
+}
+
+/* Estilo de scrollbar para disk-grid */
+.disk-grid::-webkit-scrollbar {
+  width: 10px;
+}
+
+.disk-grid::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 10px;
+}
+
+.disk-grid::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 10px;
+}
+
+.disk-grid::-webkit-scrollbar-thumb:hover {
+  background: #5568d3;
+}
+
+.disk-card {
+  background: #2a2a2a;
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: white;
+  width: 100%;
+  max-width: 280px;
+  min-height: 300px;
+}
+
+.disk-card:hover {
+  background: #333;
+}
+
+.disk-icon {
+  font-size: 4.5em;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  flex-shrink: 0;
+}
+
+.disk-name {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-bottom: 12px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  word-break: break-word;
+  flex-shrink: 0;
+}
+
+.disk-info {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.85em;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item .label {
+  font-weight: 600;
+  opacity: 0.9;
+  color: #aaa;
+}
+
+.info-item .value {
+  font-weight: 500;
+  color: #fff;
+}
+
+/* Disk Explorer */
+.disk-explorer {
+  background: transparent;
+  border-radius: 0;
+  padding: 10px;
+  box-shadow: none;
+  border: none;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.explorer-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #333;
+  flex-shrink: 0;
+}
+
+.back-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  min-width: 90px;
+  height: 36px;
+  font-weight: 500;
+}
+
+.back-btn:hover {
+  background: #5568d3;
+}
+
+.explorer-header h2 {
+  color: #fff;
+  font-size: 1.4em;
+  margin: 0;
+}
+
+.partitions-section {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.partitions-section h3 {
+  color: #667eea;
+  font-size: 1.1em;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.partitions-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 15px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px;
+  align-content: start;
+}
+
+/* Estilo de scrollbar para partitions-list */
+.partitions-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.partitions-list::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 10px;
+}
+
+.partitions-list::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 10px;
+}
+
+.partitions-list::-webkit-scrollbar-thumb:hover {
+  background: #5568d3;
+}
+
+.partition-card {
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 14px;
+  border: 2px solid #333;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.partition-card.mounted {
+  border-color: #333;
+}
+
+.partition-card.unmounted {
+  border-color: #333;
+  opacity: 0.7;
+}
+
+.partition-card.mounted:hover {
+  background: #333;
+}
+
+.partition-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #444;
+}
+
+.partition-name {
+  font-size: 1em;
+  font-weight: 600;
+  color: #fff;
+}
+
+.partition-status {
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 0.7em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-mounted {
+  background: #4CAF50;
+  color: white;
+}
+
+.status-unmounted {
+  background: #666;
+  color: #ccc;
+}
+
+.partition-id-badge {
+  background: #667eea;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 0.75em;
+  font-weight: 600;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+.partition-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 0;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.detail-label {
+  color: #999;
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.detail-value {
+  color: #fff;
+  font-size: 0.85em;
+}
+
+.partition-action-hint {
+  text-align: center;
+  color: #667eea;
+  font-size: 0.85em;
+  font-style: italic;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #444;
+}
+
+.no-partitions {
+  text-align: center;
+  color: #999;
+  padding: 30px;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+  .disk-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .partitions-list {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .disk-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .partitions-list {
+    grid-template-columns: 1fr;
+  }
+
+  .explorer-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .disk-card {
+    max-width: 100%;
+  }
+}
