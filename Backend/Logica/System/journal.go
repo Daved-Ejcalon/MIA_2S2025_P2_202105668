@@ -10,17 +10,26 @@ import (
 type JournalManager struct {
 	diskPath      string
 	partitionInfo *Models.Partition
+	superBloque   *Models.SuperBloque
 	journal       *Models.Journal
 	journalPos    int64
 }
 
 // NewJournalManager crea un nuevo gestor de journal
-func NewJournalManager(diskPath string, partitionInfo *Models.Partition) *JournalManager {
-	journalPos := partitionInfo.PartStart + int64(Models.SUPERBLOQUE_SIZE)
+func NewJournalManager(diskPath string, partitionInfo *Models.Partition, superBloque *Models.SuperBloque) *JournalManager {
+	var journalPos int64
+
+	// Si tenemos superBloque, usar S_journal_start; si no, usar posición por defecto
+	if superBloque != nil && superBloque.S_journal_start > 0 {
+		journalPos = partitionInfo.PartStart + int64(superBloque.S_journal_start)
+	} else {
+		journalPos = partitionInfo.PartStart + int64(Models.SUPERBLOQUE_SIZE)
+	}
 
 	return &JournalManager{
 		diskPath:      diskPath,
 		partitionInfo: partitionInfo,
+		superBloque:   superBloque,
 		journalPos:    journalPos,
 	}
 }

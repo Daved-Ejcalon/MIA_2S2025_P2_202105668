@@ -680,9 +680,138 @@ func getDisksHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
+func getFileSystemContentHandler(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Obtener parámetros de la URL
+	partitionID := r.URL.Query().Get("partition_id")
+	path := r.URL.Query().Get("path")
+
+	if partitionID == "" {
+		http.Error(w, "Parámetro partition_id requerido", http.StatusBadRequest)
+		return
+	}
+
+	if path == "" {
+		path = "/"
+	}
+
+	// Obtener información de la partición montada
+	mountInfo, err := Disk.GetMountInfoByID(partitionID)
+	if err != nil {
+		type ErrorResponse struct {
+			Error string `json:"error"`
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "Partición no montada o no encontrada"})
+		return
+	}
+
+	// Crear MountInfo para el sistema EXT2
+	systemMountInfo := &System.MountInfo{
+		DiskPath:      mountInfo.DiskPath,
+		PartitionName: mountInfo.PartitionName,
+		MountID:       mountInfo.MountID,
+		DiskLetter:    mountInfo.DiskLetter,
+		PartNumber:    mountInfo.PartNumber,
+	}
+
+	// Inicializar el gestor EXT2
+	ext2Manager := System.NewEXT2Manager(systemMountInfo)
+	if ext2Manager == nil {
+		type ErrorResponse struct {
+			Error string `json:"error"`
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "Error al inicializar el sistema de archivos"})
+		return
+	}
+
+	// Crear el gestor de directorios
+	dirManager := System.NewEXT2DirectoryManager(ext2Manager)
+	if dirManager == nil {
+		type ErrorResponse struct {
+			Error string `json:"error"`
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "Error al crear gestor de directorios"})
+		return
+	}
+
+	// Listar el contenido del directorio
+	entries, err := dirManager.ListDirectory(path)
+	if err != nil {
+		type ErrorResponse struct {
+			Error string `json:"error"`
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(ErrorResponse{Error: fmt.Sprintf("Error al listar directorio: %s", err.Error())})
+		return
+	}
+
+	// Transformar las entradas al formato esperado por el frontend
+	type FileSystemEntry struct {
+		Name        string `json:"name"`
+		Type        string `json:"type"`
+		Size        int32  `json:"size"`
+		Permissions string `json:"permissions"`
+		Owner       string `json:"owner"`
+		UID         int32  `json:"uid"`
+		GID         int32  `json:"gid"`
+	}
+
+	// Inicializar response como array vacío para evitar null en JSON
+	response := make([]FileSystemEntry, 0)
+	for _, entry := range entries {
+		// Filtrar "." y ".." para no mostrarlos en la interfaz
+		if entry.Name == "." || entry.Name == ".." {
+			continue
+		}
+
+		entryType := "file"
+		if entry.Type == 0 { // INODO_DIRECTORIO
+			entryType = "folder"
+		}
+
+		// Formatear permisos en formato octal (ej: "664")
+		perms := fmt.Sprintf("%d", entry.Permissions)
+
+		// TODO: Obtener el nombre del usuario desde el archivo users.txt
+		// Por ahora, mostrar el UID como owner
+		owner := fmt.Sprintf("uid:%d", entry.UID)
+
+		response = append(response, FileSystemEntry{
+			Name:        entry.Name,
+			Type:        entryType,
+			Size:        entry.Size,
+			Permissions: perms,
+			Owner:       owner,
+			UID:         entry.UID,
+			GID:         entry.GID,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
 func startServer() {
 	http.HandleFunc("/execute", executeCommandHandler)
 	http.HandleFunc("/disks", getDisksHandler)
+	http.HandleFunc("/filesystem", getFileSystemContentHandler)
 
 	fmt.Println("Servidor iniciado en http://localhost:8080")
 	fmt.Println("Ctrl+C para detener")

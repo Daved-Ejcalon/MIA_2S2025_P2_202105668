@@ -24,6 +24,7 @@ type SuperBloque struct {
 	S_bm_block_start    int32   // Posicion del bitmap de bloques
 	S_inode_start       int32   // Posicion de la tabla de inodos
 	S_block_start       int32   // Posicion del area de bloques
+	S_journal_start     int32   // Posicion del journal (solo EXT3)
 }
 
 // Inodo representa un archivo o directorio con metadatos y punteros a bloques

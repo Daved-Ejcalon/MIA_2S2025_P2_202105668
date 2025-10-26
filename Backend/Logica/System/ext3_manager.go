@@ -107,10 +107,23 @@ func (e *EXT3Manager) calculateEXT3Layout() error {
 	// Relacion 3:1 bloques por inodo (3 tipos de bloques)
 	blocksCount := 3 * inodesCount
 
+	// Calcular posiciones de estructuras en el disco para EXT3
+	inodeBitmapSize := inodesCount
+	blockBitmapSize := blocksCount
+	journalSize := inodesCount * int32(journalingConstant)
+
 	// Crear superbloque con tipo 3 (EXT3)
 	e.superBloque = &Models.SuperBloque{}
 	*e.superBloque = Models.NewSuperBloque(inodesCount, blocksCount)
 	e.superBloque.S_filesystem_type = 3
+
+	// Layout EXT3:
+	// [SuperBloque][Journal][Bitmap_Inodos][Bitmap_Bloques][Tabla_Inodos][Bloques]
+	e.superBloque.S_journal_start = Models.SUPERBLOQUE_SIZE
+	e.superBloque.S_bm_inode_start = Models.SUPERBLOQUE_SIZE + journalSize
+	e.superBloque.S_bm_block_start = e.superBloque.S_bm_inode_start + inodeBitmapSize
+	e.superBloque.S_inode_start = e.superBloque.S_bm_block_start + blockBitmapSize
+	e.superBloque.S_block_start = e.superBloque.S_inode_start + (inodesCount * Models.INODO_SIZE)
 
 	return nil
 }
@@ -142,8 +155,8 @@ func (e *EXT3Manager) writeSuperBloqueEXT3() error {
 
 // initializeJournal inicializa el journal de EXT3
 func (e *EXT3Manager) initializeJournal() error {
-	// Crear journal manager
-	e.journalManager = NewJournalManager(e.diskPath, e.partitionInfo)
+	// Crear journal manager con superBloque para obtener posición correcta
+	e.journalManager = NewJournalManager(e.diskPath, e.partitionInfo, e.superBloque)
 
 	// Inicializar journal en el disco
 	return e.journalManager.InitializeJournal()
@@ -152,7 +165,7 @@ func (e *EXT3Manager) initializeJournal() error {
 // LogOperation registra una operacion en el journal
 func (e *EXT3Manager) LogOperation(operation string, path string, content string) error {
 	if e.journalManager == nil {
-		e.journalManager = NewJournalManager(e.diskPath, e.partitionInfo)
+		e.journalManager = NewJournalManager(e.diskPath, e.partitionInfo, e.superBloque)
 	}
 
 	return e.journalManager.LogOperation(operation, path, content)
@@ -161,7 +174,7 @@ func (e *EXT3Manager) LogOperation(operation string, path string, content string
 // GetJournalEntries retorna todas las entradas del journal
 func (e *EXT3Manager) GetJournalEntries() ([]Models.Information, error) {
 	if e.journalManager == nil {
-		e.journalManager = NewJournalManager(e.diskPath, e.partitionInfo)
+		e.journalManager = NewJournalManager(e.diskPath, e.partitionInfo, e.superBloque)
 	}
 
 	return e.journalManager.GetJournalEntries()

@@ -207,26 +207,31 @@ func (e *EXT2Manager) initializeBitmaps() error {
 	defer file.Close()
 
 	// Crear bitmap de inodos y marcar root (0) y users.txt (1) como usados
-	inodeBitmapSize := int(e.superBloque.S_inodes_count)
+	// El tamaño del bitmap debe ser en bytes: (número_de_inodos / 8) + 1
+	inodeBitmapSize := int(e.superBloque.S_inodes_count/8 + 1)
 	inodeBitmap := Models.CreateBitmap(inodeBitmapSize)
+
 	Models.SetBitmapBit(inodeBitmap, 0)
 	Models.SetBitmapBit(inodeBitmap, 1)
 
 	inodeBitmapPos := e.partitionInfo.PartStart + int64(e.superBloque.S_bm_inode_start)
+
 	_, err = file.Seek(inodeBitmapPos, 0)
 	if err != nil {
 		return err
 	}
+
 	_, err = file.Write(inodeBitmap)
 	if err != nil {
 		return err
 	}
 
-	// Crear bitmap de bloques y marcar directorio root (0) y users.txt (1) como usados
-	blockBitmapSize := int(e.superBloque.S_blocks_count)
+	// Crear bitmap de bloques y marcar directorio root (0) y users.txt (bloque 100) como usados
+	// El tamaño del bitmap debe ser en bytes: (número_de_bloques / 8) + 1
+	blockBitmapSize := int(e.superBloque.S_blocks_count/8 + 1)
 	blockBitmap := Models.CreateBitmap(blockBitmapSize)
-	Models.SetBitmapBit(blockBitmap, 0)
-	Models.SetBitmapBit(blockBitmap, 1)
+	Models.SetBitmapBit(blockBitmap, 0)   // Bloque 0: directorio raíz
+	Models.SetBitmapBit(blockBitmap, 100) // Bloque 100: users.txt
 
 	blockBitmapPos := e.partitionInfo.PartStart + int64(e.superBloque.S_bm_block_start)
 	_, err = file.Seek(blockBitmapPos, 0)

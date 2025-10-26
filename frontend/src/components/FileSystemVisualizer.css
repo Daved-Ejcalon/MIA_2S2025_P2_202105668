@@ -19,12 +19,12 @@
 }
 
 .visualizer-container::-webkit-scrollbar-thumb {
-  background: #667eea;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 10px;
 }
 
 .visualizer-container::-webkit-scrollbar-thumb:hover {
-  background: #5568d3;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .visualizer-header {
@@ -63,7 +63,7 @@
 }
 
 .loading h2 {
-  color: #667eea;
+  color: #00cc66;
   font-size: 1.6em;
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -95,21 +95,21 @@
 }
 
 .retry-btn {
-  background: #667eea;
-  color: white;
+  background: #00cc66;
+  color: #0a0a0a;
   border: none;
-  padding: 8px 12px;
+  padding: 6px 12px;
   border-radius: 6px;
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.2s ease;
   min-width: 90px;
-  height: 36px;
-  font-weight: 500;
+  height: 32px;
+  font-weight: 600;
 }
 
 .retry-btn:hover {
-  background: #5568d3;
+  background: #00b359;
 }
 
 /* Disk Selection */
@@ -143,7 +143,7 @@
   background: #1a1a1a;
   padding: 4px 8px;
   border-radius: 4px;
-  color: #667eea;
+  color: #00cc66;
   font-weight: 600;
   border: 1px solid #333;
 }
@@ -171,12 +171,12 @@
 }
 
 .disk-grid::-webkit-scrollbar-thumb {
-  background: #667eea;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 10px;
 }
 
 .disk-grid::-webkit-scrollbar-thumb:hover {
-  background: #5568d3;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .disk-card {
@@ -185,7 +185,7 @@
   border-radius: 12px;
   padding: 20px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
@@ -199,6 +199,7 @@
 
 .disk-card:hover {
   background: #333;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
 }
 
 .disk-icon {
@@ -268,36 +269,55 @@
 .explorer-header {
   display: flex;
   align-items: center;
-  gap: 15px;
+  justify-content: space-between;
   margin-bottom: 15px;
   padding-bottom: 15px;
   border-bottom: 2px solid #333;
   flex-shrink: 0;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
 .back-btn {
-  background: #667eea;
-  color: white;
+  background: #00cc66;
+  color: #0a0a0a;
   border: none;
-  padding: 8px 12px;
+  padding: 6px 12px;
   border-radius: 6px;
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.2s ease;
   white-space: nowrap;
   min-width: 90px;
-  height: 36px;
-  font-weight: 500;
+  height: 32px;
+  font-weight: 600;
 }
 
 .back-btn:hover {
-  background: #5568d3;
+  background: #00b359;
 }
 
 .explorer-header h2 {
   color: #fff;
   font-size: 1.4em;
   margin: 0;
+}
+
+.partition-info-text {
+  display: flex;
+  gap: 15px;
+  color: #aaa;
+  font-size: 0.9em;
+  pointer-events: none;
+  user-select: none;
+}
+
+.partition-info-text span {
+  color: #aaa;
 }
 
 .partitions-section {
@@ -312,7 +332,7 @@
 }
 
 .partitions-section h3 {
-  color: #667eea;
+  color: #00cc66;
   font-size: 1.1em;
   margin-bottom: 12px;
   flex-shrink: 0;
@@ -340,12 +360,12 @@
 }
 
 .partitions-list::-webkit-scrollbar-thumb {
-  background: #667eea;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 10px;
 }
 
 .partitions-list::-webkit-scrollbar-thumb:hover {
-  background: #5568d3;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .partition-card {
@@ -353,7 +373,7 @@
   border-radius: 8px;
   padding: 14px;
   border: 2px solid #333;
-  transition: all 0.3s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
   position: relative;
 }
 
@@ -368,6 +388,7 @@
 
 .partition-card.mounted:hover {
   background: #333;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
 }
 
 .partition-header {
@@ -405,8 +426,8 @@
 }
 
 .partition-id-badge {
-  background: #667eea;
-  color: white;
+  background: #00cc66;
+  color: #0a0a0a;
   padding: 4px 10px;
   border-radius: 5px;
   font-size: 0.75em;
@@ -442,7 +463,7 @@
 
 .partition-action-hint {
   text-align: center;
-  color: #667eea;
+  color: #00cc66;
   font-size: 0.85em;
   font-style: italic;
   margin-top: 10px;
@@ -486,4 +507,200 @@
   .disk-card {
     max-width: 100%;
   }
+}
+
+/* File Explorer Section - MINIMALISTA */
+.file-explorer-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.explorer-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+
+.back-btn-partition {
+  background: #00cc66;
+  color: #0a0a0a;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-weight: 600;
+  height: 32px;
+}
+
+.back-btn-partition:hover {
+  background: #00b359;
+}
+
+.partition-info-badge {
+  display: flex;
+  gap: 15px;
+  color: #aaa;
+  font-size: 13px;
+}
+
+.partition-info-badge span {
+  background: #2a2a2a;
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: 1px solid #333;
+}
+
+.breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #2a2a2a;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  border: 1px solid #333;
+  flex-shrink: 0;
+  height: 40px;
+}
+
+.breadcrumb-btn {
+  background: #00cc66;
+  color: #0a0a0a;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-weight: 600;
+  height: 26px;
+}
+
+.breadcrumb-btn:hover:not(:disabled) {
+  background: #00b359;
+}
+
+.breadcrumb-btn.active {
+  background: #00b359;
+  cursor: default;
+}
+
+.breadcrumb-btn:disabled {
+  opacity: 0.9;
+  cursor: default;
+}
+
+.breadcrumb-separator {
+  color: #666;
+  font-weight: bold;
+}
+
+.current-path-text {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.file-list-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.file-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.file-list-container::-webkit-scrollbar-track {
+  background: #111;
+  border-radius: 10px;
+}
+
+.file-list-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.file-list-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.file-list-subtitle {
+  color: #999;
+  font-size: 13px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-style: italic;
+}
+
+.empty-folder {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.file-item {
+  background: #2a2a2a;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 15px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 120px;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.file-item:hover {
+  background: #333;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.file-icon {
+  font-size: 3em;
+  margin-bottom: 8px;
+}
+
+.file-info {
+  width: 100%;
+}
+
+.file-name {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.file-size {
+  color: #999;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.file-permissions {
+  color: #00cc66;
+  font-size: 10px;
+  font-weight: 500;
 }

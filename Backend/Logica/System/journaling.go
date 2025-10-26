@@ -39,7 +39,7 @@ func (jv *JournalingViewer) ShowJournal() error {
 		return fmt.Errorf("ERROR: La partición no tiene sistema de archivos EXT3")
 	}
 
-	journalManager := NewJournalManager(jv.diskPath, jv.partitionInfo)
+	journalManager := NewJournalManager(jv.diskPath, jv.partitionInfo, &sb)
 	entries, err := journalManager.GetJournalEntries()
 	if err != nil {
 		return err

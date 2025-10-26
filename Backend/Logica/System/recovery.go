@@ -42,7 +42,7 @@ func (rm *RecoveryManager) RecoverFileSystem() error {
 		return fmt.Errorf("ERROR: La partición no tiene sistema de archivos EXT3")
 	}
 
-	journalManager := NewJournalManager(rm.diskPath, rm.partitionInfo)
+	journalManager := NewJournalManager(rm.diskPath, rm.partitionInfo, rm.superBloque)
 	entries, err := journalManager.GetJournalEntries()
 	if err != nil {
 		return err

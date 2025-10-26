@@ -227,18 +227,33 @@ func MkDir(params map[string]string) error {
 		if strings.Contains(err.Error(), "directorio padre no existe") && createParents {
 			// Dividir la ruta y crear directorios padre recursivamente
 			pathParts := strings.Split(strings.Trim(path, "/"), "/")
-			currentPath := ""
+			currentPath := "/"
 
 			for _, part := range pathParts {
 				if part == "" {
 					continue
 				}
-				currentPath = currentPath + "/" + part
+
+				// Construir la ruta correctamente
+				if currentPath == "/" {
+					currentPath = "/" + part
+				} else {
+					currentPath = currentPath + "/" + part
+				}
+
+				// Debug: Imprimir la ruta que se intenta crear
+				fmt.Printf("[DEBUG] Intentando crear: '%s'\n", currentPath)
 
 				// Intentar crear cada directorio en la jerarquía
 				err = dirManager.CreateDirectory(currentPath, int32(session.UserID), int32(session.GroupID), int32(permissions))
 				if err != nil && !strings.Contains(err.Error(), "ya existe") {
 					return fmt.Errorf("error creando directorio '%s': %v", currentPath, err)
+				}
+
+				if err == nil {
+					fmt.Printf("[DEBUG] ✓ Directorio '%s' creado exitosamente\n", currentPath)
+				} else {
+					fmt.Printf("[DEBUG] ⚠ Directorio '%s' ya existe\n", currentPath)
 				}
 
 				// Si es EXT3, registrar en el journal
