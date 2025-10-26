@@ -808,10 +808,111 @@ func getFileSystemContentHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func getFileContentHandler(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+
+	if r.Method == "OPTIONS" {
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Obtener parámetros de la URL
+	partitionID := r.URL.Query().Get("partition_id")
+	filePath := r.URL.Query().Get("path")
+
+	if partitionID == "" {
+		http.Error(w, "Parámetro partition_id requerido", http.StatusBadRequest)
+		return
+	}
+
+	if filePath == "" {
+		http.Error(w, "Parámetro path requerido", http.StatusBadRequest)
+		return
+	}
+
+	// Obtener información de la partición montada
+	mountInfo, err := Disk.GetMountInfoByID(partitionID)
+	if err != nil {
+		type ErrorResponse struct {
+			Error string `json:"error"`
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "Partición no montada o no encontrada"})
+		return
+	}
+
+	// Crear MountInfo para el sistema EXT2
+	systemMountInfo := &System.MountInfo{
+		DiskPath:      mountInfo.DiskPath,
+		PartitionName: mountInfo.PartitionName,
+		MountID:       mountInfo.MountID,
+		DiskLetter:    mountInfo.DiskLetter,
+		PartNumber:    mountInfo.PartNumber,
+	}
+
+	// Inicializar el gestor EXT2
+	ext2Manager := System.NewEXT2Manager(systemMountInfo)
+	if ext2Manager == nil {
+		type ErrorResponse struct {
+			Error string `json:"error"`
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "Error al inicializar el sistema de archivos"})
+		return
+	}
+
+	// Crear el gestor de archivos
+	fileManager := System.NewEXT2FileManager(ext2Manager)
+	if fileManager == nil {
+		type ErrorResponse struct {
+			Error string `json:"error"`
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "Error al crear gestor de archivos"})
+		return
+	}
+
+	// Leer el contenido del archivo
+	content, err := fileManager.ReadFileContent(filePath)
+	if err != nil {
+		type ErrorResponse struct {
+			Error string `json:"error"`
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(ErrorResponse{Error: fmt.Sprintf("Error al leer archivo: %s", err.Error())})
+		return
+	}
+
+	// Respuesta con el contenido del archivo
+	type FileContentResponse struct {
+		Path    string `json:"path"`
+		Content string `json:"content"`
+		Size    int    `json:"size"`
+	}
+
+	response := FileContentResponse{
+		Path:    filePath,
+		Content: content,
+		Size:    len(content),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
 func startServer() {
 	http.HandleFunc("/execute", executeCommandHandler)
 	http.HandleFunc("/disks", getDisksHandler)
 	http.HandleFunc("/filesystem", getFileSystemContentHandler)
+	http.HandleFunc("/file-content", getFileContentHandler)
 
 	fmt.Println("Servidor iniciado en http://localhost:8080")
 	fmt.Println("Ctrl+C para detener")

@@ -3,7 +3,6 @@ package System
 import (
 	"MIA_2S2025_P1_202105668/Models"
 	"errors"
-	"fmt"
 	"strings"
 )
 
@@ -34,17 +33,11 @@ func (d *EXT2DirectoryManager) CreateDirectory(dirPath string, uid int32, gid in
 	// Separar ruta padre y nombre del directorio
 	parentPath, dirName := d.fileManager.splitPath(dirPath)
 
-	// Debug
-	fmt.Printf("[EXT2 DEBUG] CreateDirectory: dirPath='%s' -> parentPath='%s', dirName='%s'\n", dirPath, parentPath, dirName)
-
 	// Verificar que el directorio padre existe
 	parentInodeNum, err := d.fileManager.findFileInode(parentPath)
 	if err != nil {
-		fmt.Printf("[EXT2 DEBUG] ERROR: Directorio padre '%s' no existe\n", parentPath)
 		return errors.New("directorio padre no existe")
 	}
-
-	fmt.Printf("[EXT2 DEBUG] Directorio padre '%s' encontrado (inodo %d)\n", parentPath, parentInodeNum)
 
 	parentInodo, err := d.fileManager.readInode(parentInodeNum)
 	if err != nil {
@@ -60,11 +53,9 @@ func (d *EXT2DirectoryManager) CreateDirectory(dirPath string, uid int32, gid in
 	// Verificar que el directorio no existe ya
 	_, err = d.fileManager.findFileInode(dirPath)
 	if err == nil {
-		fmt.Printf("[EXT2 DEBUG] ERROR: El directorio '%s' ya existe\n", dirPath)
 		return errors.New("el directorio ya existe")
 	}
 
-	fmt.Printf("[EXT2 DEBUG] Creando directorio '%s' (nombre='%s') en padre (inodo %d)\n", dirPath, dirName, parentInodeNum)
 	return d.createNewDirectory(parentInodeNum, dirName, uid, gid, permissions)
 }
 
@@ -229,12 +220,10 @@ func (d *EXT2DirectoryManager) createNewDirectory(parentInodeNum int32, dirName 
 		return err
 	}
 
-	fmt.Printf("[CREATE DIR DEBUG] Agregando entrada '%s' (inodo %d) al padre (inodo %d)\n", dirName, newInodeNum, parentInodeNum)
 	err = d.fileManager.addEntryToDirectory(parentInodeNum, dirName, newInodeNum)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("[CREATE DIR DEBUG] Entrada agregada exitosamente\n")
 
 	err = d.fileManager.markInodeAsUsed(newInodeNum)
 	if err != nil {

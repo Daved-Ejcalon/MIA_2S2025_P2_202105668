@@ -241,19 +241,10 @@ func MkDir(params map[string]string) error {
 					currentPath = currentPath + "/" + part
 				}
 
-				// Debug: Imprimir la ruta que se intenta crear
-				fmt.Printf("[DEBUG] Intentando crear: '%s'\n", currentPath)
-
 				// Intentar crear cada directorio en la jerarquía
 				err = dirManager.CreateDirectory(currentPath, int32(session.UserID), int32(session.GroupID), int32(permissions))
 				if err != nil && !strings.Contains(err.Error(), "ya existe") {
 					return fmt.Errorf("error creando directorio '%s': %v", currentPath, err)
-				}
-
-				if err == nil {
-					fmt.Printf("[DEBUG] ✓ Directorio '%s' creado exitosamente\n", currentPath)
-				} else {
-					fmt.Printf("[DEBUG] ⚠ Directorio '%s' ya existe\n", currentPath)
 				}
 
 				// Si es EXT3, registrar en el journal
@@ -277,6 +268,5 @@ func MkDir(params map[string]string) error {
 		}
 	}
 
-	fmt.Printf("Directorio '%s' creado exitosamente\n", path)
 	return nil
 }

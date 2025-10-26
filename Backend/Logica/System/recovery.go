@@ -69,18 +69,33 @@ func (rm *RecoveryManager) RecoverFileSystem() error {
 
 	fmt.Printf("Recuperando sistema de archivos al estado anterior al formato (entrada %d)...\n", lastFormatIndex)
 
-	rm.ext3Manager = &EXT3Manager{
-		EXT2Manager: &EXT2Manager{
-			diskPath:      rm.diskPath,
-			partitionInfo: rm.partitionInfo,
-			superBloque:   &sb,
-		},
-		journalManager: journalManager,
+	// Crear MountInfo temporal para inicializar el gestor EXT3
+	tempMountInfo := &MountInfo{
+		DiskPath:      rm.diskPath,
+		PartitionName: string(rm.partitionInfo.PartName[:]),
+		MountID:       "recovery",
+		DiskLetter:    'X',
+		PartNumber:    0,
 	}
+
+	// Crear EXT3Manager correctamente usando NewEXT3Manager
+	rm.ext3Manager = NewEXT3Manager(tempMountInfo)
+	if rm.ext3Manager == nil {
+		return fmt.Errorf("error inicializando EXT3Manager para recuperación")
+	}
+
+	// Asignar el superbloque y partition info que ya tenemos
+	rm.ext3Manager.EXT2Manager.superBloque = &sb
+	rm.ext3Manager.EXT2Manager.partitionInfo = rm.partitionInfo
+	rm.ext3Manager.journalManager = journalManager
 
 	entriesToRecover := entries[:lastFormatIndex]
 
-	rm.ext3Manager.FormatPartition()
+	// Formatear la partición para limpiarla antes de recuperar
+	err = rm.ext3Manager.FormatPartition()
+	if err != nil {
+		return fmt.Errorf("error formateando partición durante recuperación: %v", err)
+	}
 
 	for i, entry := range entriesToRecover {
 		operation := strings.TrimRight(string(entry.I_operation[:]), "\x00")

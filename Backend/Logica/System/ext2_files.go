@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 )
@@ -95,19 +94,14 @@ func (f *EXT2FileManager) findFileInode(filePath string) (int32, error) {
 	pathParts := strings.Split(strings.Trim(filePath, "/"), "/")
 	currentInode := Models.ROOT_INODE
 
-	fmt.Printf("[FIND DEBUG] Buscando: '%s' -> partes: %v\n", filePath, pathParts)
-
 	// Recorrer cada componente de la ruta
 	for _, part := range pathParts {
 		if part == "" {
 			continue
 		}
 
-		fmt.Printf("[FIND DEBUG] Buscando '%s' en inodo %d\n", part, currentInode)
-
 		inodo, err := f.readInode(int32(currentInode))
 		if err != nil {
-			fmt.Printf("[FIND DEBUG] Error leyendo inodo %d: %v\n", currentInode, err)
 			return -1, err
 		}
 
@@ -117,15 +111,12 @@ func (f *EXT2FileManager) findFileInode(filePath string) (int32, error) {
 
 		nextInode, err := f.findInDirectory(inodo, part)
 		if err != nil {
-			fmt.Printf("[FIND DEBUG] No encontrado '%s' en inodo %d: %v\n", part, currentInode, err)
 			return -1, err
 		}
 
-		fmt.Printf("[FIND DEBUG] '%s' encontrado -> inodo %d\n", part, nextInode)
 		currentInode = int(nextInode)
 	}
 
-	fmt.Printf("[FIND DEBUG] Resultado final para '%s': inodo %d\n", filePath, currentInode)
 	return int32(currentInode), nil
 }
 
@@ -145,9 +136,7 @@ func (f *EXT2FileManager) findInDirectory(dirInodo *Models.Inodo, filename strin
 		for _, entry := range dirBlock.B_content {
 			if entry.B_inodo != Models.FREE_INODE {
 				entryName := strings.TrimRight(string(entry.B_name[:]), "\x00")
-				fmt.Printf("[FIND IN DIR DEBUG] Revisando entrada: '%s' (inodo %d), buscando: '%s'\n", entryName, entry.B_inodo, filename)
 				if entryName == filename {
-					fmt.Printf("[FIND IN DIR DEBUG] ¡MATCH! Retornando inodo %d para '%s'\n", entry.B_inodo, filename)
 					return entry.B_inodo, nil
 				}
 			}
@@ -397,19 +386,12 @@ func (f *EXT2FileManager) findFreeInode() (int32, error) {
 		return -1, err
 	}
 
-	// Debug: Mostrar los primeros bytes del bitmap
-	if len(bitmap) >= 4 {
-		fmt.Printf("[BITMAP DEBUG] Bitmap de inodos (primeros 4 bytes): %08b %08b %08b %08b\n",
-			bitmap[0], bitmap[1], bitmap[2], bitmap[3])
-	}
-
 	// Buscar primer bit libre en el bitmap de inodos
 	freeIndex := Models.FindFreeBitmapBit(bitmap)
 	if freeIndex == -1 {
 		return -1, errors.New("no hay inodos libres")
 	}
 
-	fmt.Printf("[BITMAP DEBUG] Inodo libre encontrado: %d\n", freeIndex)
 	return int32(freeIndex), nil
 }
 
@@ -565,17 +547,9 @@ func (f *EXT2FileManager) addEntryToDirectory(dirInodeNum int32, filename string
 
 		for j := 0; j < len(dirBlock.B_content); j++ {
 			if dirBlock.B_content[j].B_inodo == Models.FREE_INODE {
-				fmt.Printf("[ADD ENTRY DEBUG] Agregando '%s' con inodo %d en posición %d\n", filename, fileInodeNum, j)
 				dirBlock.B_content[j].B_inodo = int32(fileInodeNum)
 				copy(dirBlock.B_content[j].B_name[:], filename)
-				fmt.Printf("[ADD ENTRY DEBUG] Escribiendo bloque de directorio...\n")
-				err := f.writeDirectoryBlock(dirInodo.I_block[i], dirBlock)
-				if err != nil {
-					fmt.Printf("[ADD ENTRY DEBUG] ERROR escribiendo bloque: %v\n", err)
-				} else {
-					fmt.Printf("[ADD ENTRY DEBUG] Bloque escrito exitosamente\n")
-				}
-				return err
+				return f.writeDirectoryBlock(dirInodo.I_block[i], dirBlock)
 			}
 		}
 	}

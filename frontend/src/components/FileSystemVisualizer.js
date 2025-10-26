@@ -9,6 +9,12 @@ const FileSystemVisualizer = ({ isLoggedIn, sessionInfo }) => {
   const [fileSystemContent, setFileSystemContent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [fileContentModal, setFileContentModal] = useState({
+    isOpen: false,
+    fileName: '',
+    content: '',
+    size: 0
+  });
 
   // Emoji para identificar los discos
   const diskEmoji = '💿';
@@ -80,7 +86,7 @@ const FileSystemVisualizer = ({ isLoggedIn, sessionInfo }) => {
     }
   };
 
-  const handleFileItemClick = (item) => {
+  const handleFileItemClick = async (item) => {
     if (item.type === 'folder') {
       // Verificar si ya estamos en este directorio para evitar duplicación
       const pathParts = currentPath.split('/').filter(p => p);
@@ -95,8 +101,42 @@ const FileSystemVisualizer = ({ isLoggedIn, sessionInfo }) => {
       setCurrentPath(newPath);
       loadFileSystemContent(selectedPartition.id, newPath);
     } else {
-      alert(`Archivo: ${item.name}\nTamaño: ${formatBytes(item.size)}\nPermisos: ${item.permissions}`);
+      // Es un archivo, cargar su contenido
+      const filePath = currentPath === '/' ? `/${item.name}` : `${currentPath}/${item.name}`;
+      loadFileContent(filePath, item.name, item.size);
     }
+  };
+
+  const loadFileContent = async (filePath, fileName, fileSize) => {
+    try {
+      const response = await fetch(`http://localhost:8080/file-content?partition_id=${selectedPartition.id}&path=${encodeURIComponent(filePath)}`);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(`Error al leer archivo: ${errorData.error}`);
+        return;
+      }
+
+      const data = await response.json();
+      setFileContentModal({
+        isOpen: true,
+        fileName: fileName,
+        content: data.content,
+        size: fileSize
+      });
+    } catch (err) {
+      console.error('Error al cargar contenido del archivo:', err);
+      alert(`Error al cargar el archivo: ${err.message}`);
+    }
+  };
+
+  const closeFileModal = () => {
+    setFileContentModal({
+      isOpen: false,
+      fileName: '',
+      content: '',
+      size: 0
+    });
   };
 
   const goToParentFolder = () => {
@@ -321,6 +361,30 @@ const FileSystemVisualizer = ({ isLoggedIn, sessionInfo }) => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Modal para mostrar contenido del archivo */}
+      {fileContentModal.isOpen && (
+        <div className="file-modal-overlay" onClick={closeFileModal}>
+          <div className="file-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="file-modal-header">
+              <div className="file-modal-title">
+                <span className="file-icon-modal">📄</span>
+                <div className="file-modal-info">
+                  <h3>{fileContentModal.fileName}</h3>
+                  <span className="file-modal-size">{formatBytes(fileContentModal.size)}</span>
+                </div>
+              </div>
+              <button className="file-modal-close" onClick={closeFileModal}>×</button>
+            </div>
+            <div className="file-modal-body">
+              <pre className="file-content-display">{fileContentModal.content}</pre>
+            </div>
+            <div className="file-modal-footer">
+              <button className="file-modal-btn-close" onClick={closeFileModal}>Cerrar</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
