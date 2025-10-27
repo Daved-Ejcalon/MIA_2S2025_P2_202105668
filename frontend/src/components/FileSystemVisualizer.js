@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './FileSystemVisualizer.css';
+import { API_URL } from '../config';
 
 const FileSystemVisualizer = ({ isLoggedIn, sessionInfo }) => {
   const [disks, setDisks] = useState([]);
@@ -28,7 +29,7 @@ const FileSystemVisualizer = ({ isLoggedIn, sessionInfo }) => {
   const loadDisks = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/disks', {
+      const response = await fetch(`${API_URL}/disks`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +69,7 @@ const FileSystemVisualizer = ({ isLoggedIn, sessionInfo }) => {
 
   const loadFileSystemContent = async (partitionId, path) => {
     try {
-      const response = await fetch(`http://localhost:8080/filesystem?partition_id=${partitionId}&path=${encodeURIComponent(path)}`);
+      const response = await fetch(`${API_URL}/filesystem?partition_id=${partitionId}&path=${encodeURIComponent(path)}`);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -109,7 +110,7 @@ const FileSystemVisualizer = ({ isLoggedIn, sessionInfo }) => {
 
   const loadFileContent = async (filePath, fileName, fileSize) => {
     try {
-      const response = await fetch(`http://localhost:8080/file-content?partition_id=${selectedPartition.id}&path=${encodeURIComponent(filePath)}`);
+      const response = await fetch(`${API_URL}/file-content?partition_id=${selectedPartition.id}&path=${encodeURIComponent(filePath)}`);
 
       if (!response.ok) {
         const errorData = await response.json();

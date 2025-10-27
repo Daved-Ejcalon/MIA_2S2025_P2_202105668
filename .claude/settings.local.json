@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(tail:*)",
+      "Bash(go build:*)",
+      "Bash(wc:*)",
+      "Bash(.MIA_2S2025_P1_202105668.exe)",
+      "Bash(find:*)",
+      "Bash(git checkout:*)",
+      "Bash(python fix_conversions.py:*)",
+      "Bash(npm start)",
+      "Bash(start cmd /k \"mia_server.exe server\")",
+      "Bash(mia_server.exe)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(tasklist:*)",
+      "Bash(del \"C:\\Users\\Revy\\Desktop\\Calificacion_MIA\\Discos\\Disco1.mia\" \"C:\\Users\\Revy\\Desktop\\Calificacion_MIA\\Discos\\Disco2.mia\")",
+      "Bash(./mia_server.exe execute \"M:\\Multimedia\\Documentos\\Practicas\\II Semestre (2025)\\Implementacion de Archivos\\MIA_2S2025_P2_202105668\\test_mkdir.txt\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

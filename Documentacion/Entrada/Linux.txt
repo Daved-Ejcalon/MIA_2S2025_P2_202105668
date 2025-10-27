@@ -1,7 +1,7 @@
 #Calificacion Proyecto 2
 #2S 2025
-#Cambiar "ubuntu" -> por el usuario de su distribución de linux
-#Cambiar “19” -> por los ultimos dos digitos de su carnet
+#Cambiar "admin" -> por el usuario de su distribución de linux
+#Cambiar “68” -> por los ultimos dos digitos de su carnet
 #Cambiar “RUTA_CONTENIDO” -> por la ruta del archivo que tenga su Carnet
 
 
@@ -9,38 +9,37 @@
 
 
 #CREANDO DISCO
-Mkdisk -size=1 -unit=K -fit=FF -path=/home/ubuntu/Calificacion_MIA/Discos/Disco2.mia
+Mkdisk -size=1 -unit=K -fit=FF -path=/home/admin/Calificacion_MIA/Discos/Disco2.mia
 
 
 #CREACION DE PARTICIONES
 #100
-fdisk -type=P -unit=b -name=Part1 -size=100 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco2.mia -fit=BF
+fdisk -type=P -unit=b -name=Part1 -size=100 -path=/home/admin/Calificacion_MIA/Discos/Disco2.mia -fit=BF
 #100
-fdisk -type=P -unit=b -name=Part2 -size=100 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco2.mia -fit=BF
+fdisk -type=P -unit=b -name=Part2 -size=100 -path=/home/admin/Calificacion_MIA/Discos/Disco2.mia -fit=BF
 #100
-fdisk -type=P -unit=b -name=Part3 -size=100 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco2.mia -fit=BF
+fdisk -type=P -unit=b -name=Part3 -size=100 -path=/home/admin/Calificacion_MIA/Discos/Disco2.mia -fit=BF
 #559
-fdisk -type=P -unit=b -name=Part4 -size=559 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco2.mia -fit=BF
-
+fdisk -type=P -unit=b -name=Part4 -size=100 -path=/home/admin/Calificacion_MIA/Discos/Disco2.mia -fit=BF
 
 #ELIMINANDO PARTICIONES
-fdisk -delete=fast -name=Part1 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco2.mia
-fdisk -delete=fast -name=Part3 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco2.mia 
+fdisk -delete=fast -name=Part1 -path=/home/admin/Calificacion_MIA/Discos/Disco2.mia
+fdisk -delete=fast -name=Part3 -path=/home/admin/Calificacion_MIA/Discos/Disco2.mia 
 
 
 #QUITANDO ESPACIO
-fdisk -add=-200 -size=10240 -unit=k -path=/home/ubuntu/Calificacion_MIA/Discos/Disco2.mia -name=Part4
+fdisk -add=-200 -size=10240 -unit=k -path=/home/admin/Calificacion_MIA/Discos/Disco2.mia -name=Part4
 
 
 #CREACION DE PARTICIONES
 #150
-fdisk -type=P -unit=b -name=Part5 -size=100 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco2.mia -fit=BF
+fdisk -type=P -unit=b -name=Part5 -size=100 -path=/home/admin/Calificacion_MIA/Discos/Disco2.mia -fit=BF
 #100
-fdisk -type=P -unit=b -name=Part6 -size=100 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco2.mia -fit=BF
+fdisk -type=P -unit=b -name=Part6 -size=100 -path=/home/admin/Calificacion_MIA/Discos/Disco2.mia -fit=BF
 
 
 #REPORTE
-rep -id=A118 -path=/home/ubuntu/Calificacion_MIA/Reportes/diskB.jpg -name=disk
+rep -id=A168 -path=/home/admin/Calificacion_MIA/Reportes/diskB.jpg -name=disk
 
 
 ________________
@@ -51,55 +50,55 @@ ________________
 
 #******* CREACION DE DISCO *******
 # 60M A
-Mkdisk -size=60 -unit=M -fit=FF -path=/home/ubuntu/Calificacion_MIA/Discos/Disco1.mia
+Mkdisk -size=60 -unit=M -fit=FF -path=/home/admin/Calificacion_MIA/Discos/Disco1.mia
 
 
 #******* CREACION DE PARTICIONES *******
 #DISCO 1
 # 20M
-fdisk -type=P -unit=b -name=Part1 -size=20971520 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco1.mia -fit=BF
+fdisk -type=P -unit=b -name=Part1 -size=20971520 -path=/home/admin/Calificacion_MIA/Discos/Disco1.mia -fit=BF
 # 10M
-fdisk -type=P -unit=k -name=Part2 -size=10240 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco1.mia -fit=BF
+fdisk -type=P -unit=k -name=Part2 -size=10240 -path=/home/admin/Calificacion_MIA/Discos/Disco1.mia -fit=BF
 # 10M
-fdisk -type=P -unit=M -name=Part3 -size=10 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco1.mia -fit=BF
+fdisk -type=P -unit=M -name=Part3 -size=10 -path=/home/admin/Calificacion_MIA/Discos/Disco1.mia -fit=BF
 # 10M
-fdisk -type=P -unit=b -name=Part4 -size=10485760 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco1.mia -fit=BF
+fdisk -type=P -unit=b -name=Part4 -size=10485760 -path=/home/admin/Calificacion_MIA/Discos/Disco1.mia -fit=BF
 
 
 #ELIMINANDO PARTICIONES
-fdisk -delete=fast -name=Part3 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco1.mia
-fdisk -delete=fast -name=Part4 -path=/home/ubuntu/Calificacion_MIA/Discos/Disco1.mia 
+fdisk -delete=fast -name=Part3 -path=/home/admin/Calificacion_MIA/Discos/Disco1.mia
+fdisk -delete=fast -name=Part4 -path=/home/admin/Calificacion_MIA/Discos/Disco1.mia 
 
 
 #QUITANDO ESPACIO
-fdisk -add=-500 -size=10240 -unit=k -path=/home/ubuntu/Calificacion_MIA/Discos/Disco1.mia -name=Part2
+fdisk -add=-500 -size=10240 -unit=k -path=/home/admin/Calificacion_MIA/Discos/Disco1.mia -name=Part2
 
 
 #AGREGANDO ESPACIO 
-fdisk -add=500 -unit=k -path=/home/ubuntu/Calificacion_MIA/Discos/Disco1.mia -name=Part2
+fdisk -add=500 -unit=k -path=/home/admin/Calificacion_MIA/Discos/Disco1.mia -name=Part2
 
 
-rep -id=A118 -path=/home/ubuntu/Calificacion_MIA/Reportes/diskB.jpg -name=disk
+rep -id=A168 -path=/home/admin/Calificacion_MIA/Reportes/diskB.jpg -name=disk
 
 
 #******* MONTAR PARTICIONES *******
 #DISCO 1
-#191a -> 19 sus ultimos dos digitos
-mount -path=/home/ubuntu/Calificacion_MIA/Discos/Disco1.mia -name=Part1
-#192a -> 19 sus ultimos dos digitos
-mount -path=/home/ubuntu/Calificacion_MIA/Discos/Disco1.mia -name=Part2
+#681A -> 68 sus ultimos dos digitos
+mount -path=/home/admin/Calificacion_MIA/Discos/Disco1.mia -name=Part1
+#682A -> 68 sus ultimos dos digitos
+mount -path=/home/admin/Calificacion_MIA/Discos/Disco1.mia -name=Part2
 
 
 #******* DESMONTAR PARTICION *******
-unmount -id=192a 
+unmount -id=682A 
 
 
 #******* CREACION DE SISTEMA DE ARCHIVOS *******
-mkfs -type=full -id=191a -fs=3fs
+mkfs -type=full -id=681A -fs=3fs
 
 
 #******* LOGIN *******
-login -user=root -pass=123 -id=191a
+login -user=root -pass=123 -id=681A
 
 
 #******* CREACION DE CARPETAS *******
@@ -179,18 +178,18 @@ logout
 
 
 #******* JOURNALING *******
-journaling -id=191a
+journaling -id=681A
 
 
 #******* LOSS *******
-loss -id=191a
+loss -id=681A
 
 
 #******* RECOVERY *******
-recovery -id=191a
+recovery -id=681A
 
 
 
 
 #******* LOGIN *******
-login -user=root -pass=123 -id=191a
+login -user=root -pass=123 -id=681A

@@ -908,11 +908,29 @@ func getFileContentHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// Middleware CORS para permitir peticiones desde S3
+func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Permitir peticiones desde cualquier origen (puedes restringir a tu bucket S3 específico)
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		
+		// Manejar peticiones preflight (OPTIONS)
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		
+		next(w, r)
+	}
+}
+
 func startServer() {
-	http.HandleFunc("/execute", executeCommandHandler)
-	http.HandleFunc("/disks", getDisksHandler)
-	http.HandleFunc("/filesystem", getFileSystemContentHandler)
-	http.HandleFunc("/file-content", getFileContentHandler)
+	http.HandleFunc("/execute", corsMiddleware(executeCommandHandler))
+	http.HandleFunc("/disks", corsMiddleware(getDisksHandler))
+	http.HandleFunc("/filesystem", corsMiddleware(getFileSystemContentHandler))
+	http.HandleFunc("/file-content", corsMiddleware(getFileContentHandler))
 
 	fmt.Println("Servidor iniciado en http://localhost:8080")
 	fmt.Println("Ctrl+C para detener")

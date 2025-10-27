@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './MIAConsole.css';
 import FileSystemVisualizer from './FileSystemVisualizer';
+import { API_URL } from '../config';
 
 const MIAConsole = () => {
   const [command, setCommand] = useState('');
@@ -108,7 +109,7 @@ const MIAConsole = () => {
 
     // Send command to backend
     try {
-      const response = await fetch('http://localhost:8080/execute', {
+      const response = await fetch(`${API_URL}/execute`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -239,7 +240,7 @@ const MIAConsole = () => {
 
     // Ejecutar comando de login
     try {
-      const response = await fetch('http://localhost:8080/execute', {
+      const response = await fetch(`${API_URL}/execute`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -291,7 +292,7 @@ const MIAConsole = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('http://localhost:8080/execute', {
+      const response = await fetch(`${API_URL}/execute`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
