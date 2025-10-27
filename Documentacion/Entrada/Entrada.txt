@@ -1,0 +1,500 @@
+# ===============================================================================
+# REQUISITOS PREVIOS - ARCHIVOS FISICOS A CREAR
+# ===============================================================================
+#
+# ⚠️ IMPORTANTE: Antes de ejecutar este archivo, debes crear físicamente:
+#
+# 1. CARPETA DE DISCOS:
+#    C:/Users/Revy/Desktop/Calificacion_MIA/Discos/
+#    (Los archivos .mia se crearán automáticamente aquí)
+#
+# 2. CARPETA DE REPORTES:
+#    /home/ubuntu/Calificacion_MIA/Reportes/
+#    (Para guardar los reportes generados)
+#
+# 3. ARCHIVO DE CONTENIDO PARA EDIT:
+#    C:/Users/Revy/Desktop/Revydubz.txt
+#    Contenido sugerido: "Este es el nuevo contenido del archivo editado"
+#
+# ===============================================================================
+
+# -------------------------------------------------------------------------------
+# 1.1 CREACION DE DISCO PEQUEÑO [PROYECTO 1]
+# -------------------------------------------------------------------------------
+# Comando: MKDISK
+# Se crea un disco de 2KB para pruebas básicas de particiones
+# Tamaño: 2048 bytes (suficiente para MBR + 4 particiones)
+# Fit: First Fit (FF)
+# -------------------------------------------------------------------------------
+
+Mkdisk -size=2 -unit=K -fit=FF -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco2.mia
+
+
+# -------------------------------------------------------------------------------
+# 1.2 CREACION DE 4 PARTICIONES PRIMARIAS [PROYECTO 1]
+# -------------------------------------------------------------------------------
+# Comando: FDISK (creación básica)
+# -------------------------------------------------------------------------------
+# Objetivo: Llenar el límite máximo de particiones primarias (4)
+# Cálculo de espacio:
+#   - Disco total: 2048 bytes
+#   - MBR: ~213 bytes
+#   - Disponible: ~1835 bytes
+#   - Particiones: 100 + 100 + 100 + 559 = 859 bytes ✅
+#   - Espacio sobrante: ~976 bytes
+# Resultado esperado: Todas las particiones deben crearse exitosamente
+# -------------------------------------------------------------------------------
+
+# Particion 1: 100 bytes con Best Fit
+fdisk -type=P -unit=b -name=Part1 -size=100 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco2.mia -fit=BF
+
+# Particion 2: 100 bytes con Best Fit
+fdisk -type=P -unit=b -name=Part2 -size=100 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco2.mia -fit=BF
+
+# Particion 3: 100 bytes con Best Fit
+fdisk -type=P -unit=b -name=Part3 -size=100 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco2.mia -fit=BF
+
+# Particion 4: 559 bytes con Best Fit
+# Con disco de 2KB hay espacio suficiente para esta partición ✅
+fdisk -type=P -unit=b -name=Part4 -size=559 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco2.mia -fit=BF
+
+
+# -------------------------------------------------------------------------------
+# 1.3 ELIMINACION DE PARTICIONES [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: FDISK -delete (nueva funcionalidad)
+# Objetivo: Liberar espacio eliminando Part1 y Part3
+# Método: Eliminación rápida (fast) - Solo marca como libre en la tabla
+# Resultado esperado: 200 bytes liberados (100 + 100)
+# -------------------------------------------------------------------------------
+
+# Eliminar Part1 (libera 100 bytes) [NUEVA FUNCIÓN]
+fdisk -delete=fast -name=Part1 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco2.mia
+
+# Eliminar Part3 (libera 100 bytes) [NUEVA FUNCIÓN]
+fdisk -delete=fast -name=Part3 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco2.mia
+
+
+# -------------------------------------------------------------------------------
+# 1.4 MODIFICACION DE TAMAÑO DE PARTICION [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: FDISK -add (nueva funcionalidad)
+# Objetivo: Reducir el tamaño de Part4 en 200 KB
+# Parámetro -add con valor negativo para quitar espacio
+# NOTA: El parámetro -size=10240 es IGNORADO (prioridad de -add)
+# Resultado esperado: Part4 reduce su tamaño en 200 KB
+# -------------------------------------------------------------------------------
+
+fdisk -add=-200 -size=10240 -unit=k -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco2.mia -name=Part4
+
+
+# -------------------------------------------------------------------------------
+# 1.5 REUTILIZACION DE ESPACIO LIBERADO [PROYECTO 1]
+# -------------------------------------------------------------------------------
+# Comando: FDISK (creación básica)
+# Objetivo: Crear nuevas particiones en el espacio previamente liberado
+# Resultado esperado: Part5 y Part6 creadas en espacios de Part1 y Part3
+# -------------------------------------------------------------------------------
+
+# Particion 5: 100 bytes en espacio liberado
+fdisk -type=P -unit=b -name=Part5 -size=100 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco2.mia -fit=BF
+
+# Particion 6: 100 bytes en espacio liberado
+fdisk -type=P -unit=b -name=Part6 -size=100 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco2.mia -fit=BF
+
+
+# -------------------------------------------------------------------------------
+# 1.6 GENERACION DE REPORTE [PROYECTO 1]
+# -------------------------------------------------------------------------------
+# Comando: REP
+# Objetivo: Visualizar el estado final del disco después de las operaciones
+# Tipo: Reporte de disco (disk)
+# -------------------------------------------------------------------------------
+
+rep -id=A118 -path=/home/ubuntu/Calificacion_MIA/Reportes/diskB.jpg -name=disk
+
+
+# ===============================================================================
+# SECCION 2: SISTEMA DE ARCHIVOS EXT3 COMPLETO
+# ===============================================================================
+# Objetivo: Probar todas las funcionalidades del sistema EXT3 y comandos nuevos
+# Incluye: Formateo, login, CRUD de archivos, journaling y recuperación
+# ===============================================================================
+
+# -------------------------------------------------------------------------------
+# 2.1 CREACION DE DISCO PRINCIPAL [PROYECTO 1]
+# -------------------------------------------------------------------------------
+# Comando: MKDISK
+# Disco de 60 MB para permitir sistema EXT3 completo
+# Tamaño suficiente para journaling (50 estructuras) + inodos + bloques
+# -------------------------------------------------------------------------------
+
+Mkdisk -size=60 -unit=M -fit=FF -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco1.mia
+
+
+# -------------------------------------------------------------------------------
+# 2.2 CREACION DE PARTICIONES EN DISCO PRINCIPAL [PROYECTO 1]
+# -------------------------------------------------------------------------------
+# Comando: FDISK (creación básica)
+# Se crean 4 particiones primarias:
+#   - Part1: 20 MB (20971520 bytes)
+#   - Part2: 10 MB (10240 KB)
+#   - Part3: 10 MB (10 MB)
+#   - Part4: 10 MB (10485760 bytes)
+# Total: 50 MB de 60 MB disponibles
+# -------------------------------------------------------------------------------
+
+# Particion 1: 20 MB en bytes
+fdisk -type=P -unit=b -name=Part1 -size=20971520 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco1.mia -fit=BF
+
+# Particion 2: 10 MB en kilobytes
+fdisk -type=P -unit=k -name=Part2 -size=10240 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco1.mia -fit=BF
+
+# Particion 3: 10 MB en megabytes
+fdisk -type=P -unit=M -name=Part3 -size=10 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco1.mia -fit=BF
+
+# Particion 4: 10 MB en bytes
+fdisk -type=P -unit=b -name=Part4 -size=10485760 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco1.mia -fit=BF
+
+
+# -------------------------------------------------------------------------------
+# 2.3 PRUEBA DE ELIMINACION DE PARTICIONES [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: FDISK -delete (nueva funcionalidad)
+# Objetivo: Liberar espacio eliminando Part3 y Part4
+# Resultado esperado: 20 MB liberados
+# -------------------------------------------------------------------------------
+
+# Eliminar Part3 (libera 10 MB)
+fdisk -delete=fast -name=Part3 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco1.mia
+
+# Eliminar Part4 (libera 10 MB)
+fdisk -delete=fast -name=Part4 -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco1.mia
+
+
+# -------------------------------------------------------------------------------
+# 2.4 PRUEBA DE MODIFICACION DE TAMAÑO [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: FDISK -add (nueva funcionalidad)
+# Reducir Part2 en 500 KB, luego restaurar los 500 KB
+# Valida que -add funcione con valores positivos y negativos
+# -------------------------------------------------------------------------------
+
+# Quitar 500 KB de Part2 (parámetro -size ignorado por prioridad de -add)
+fdisk -add=-500 -size=10240 -unit=k -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco1.mia -name=Part2
+
+# Agregar 500 KB nuevamente a Part2
+fdisk -add=500 -unit=k -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco1.mia -name=Part2
+
+
+# Reporte del estado del disco
+rep -id=A118 -path=/home/ubuntu/Calificacion_MIA/Reportes/diskB.jpg -name=disk
+
+
+# -------------------------------------------------------------------------------
+# 2.5 MONTAJE DE PARTICIONES [PROYECTO 1]
+# -------------------------------------------------------------------------------
+# Comando: MOUNT
+# Objetivo: Montar particiones para poder formatearlas y usarlas
+# IDs esperados:
+#   - Part1 -> 681A (68 = últimos 2 dígitos del carnet, 1 = correlativo, a = disco A)
+#   - Part2 -> 682a
+# -------------------------------------------------------------------------------
+
+# Montar Part1 (genera ID: 681A)
+mount -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco1.mia -name=Part1
+
+# Montar Part2 (genera ID: 682a)
+mount -path=C:/Users/Revy/Desktop/Calificacion_MIA/Discos/Disco1.mia -name=Part2
+
+
+# -------------------------------------------------------------------------------
+# 2.6 PRUEBA DE DESMONTAJE DE PARTICION [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: UNMOUNT (nueva funcionalidad)
+# Objetivo: Desmontar Part2 para validar el comando UNMOUNT
+# Resultado esperado: Part2 desmontada, correlativo vuelve a 0
+# -------------------------------------------------------------------------------
+
+unmount -id=682A
+
+
+# -------------------------------------------------------------------------------
+# 2.7 FORMATEO DE PARTICION CON EXT3 [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: MKFS -fs=3fs (nueva funcionalidad - soporte EXT3)
+# Objetivo: Crear sistema de archivos EXT3 en Part1
+# Parámetros:
+#   - type=full: Formateo completo
+#   - fs=3fs: Sistema EXT3 (con journaling)
+# Estructuras creadas: Superbloque, Journal (50), Bitmaps, Inodos, Bloques
+# -------------------------------------------------------------------------------
+
+mkfs -type=full -id=681A -fs=3fs
+
+
+# -------------------------------------------------------------------------------
+# 2.8 LOGIN AL SISTEMA [PROYECTO 1]
+# -------------------------------------------------------------------------------
+# Comando: LOGIN
+# Objetivo: Iniciar sesión con usuario root
+# Credenciales por defecto: root/123
+# ID: 681A (Part1 montada)
+# Resultado esperado: Sesión iniciada, puede ejecutar comandos de archivos
+# -------------------------------------------------------------------------------
+
+login -user=root -pass=123 -id=681A
+
+
+# ===============================================================================
+# SECCION 3: OPERACIONES CRUD DEL SISTEMA DE ARCHIVOS
+# ===============================================================================
+
+# -------------------------------------------------------------------------------
+# 3.1 CREACION DE ESTRUCTURA DE CARPETAS [PROYECTO 1]
+# -------------------------------------------------------------------------------
+# Comandos: MKDIR, MKFILE
+# Objetivo: Crear jerarquía de carpetas y archivos
+# Se usa -p para crear carpetas padres automáticamente
+# -------------------------------------------------------------------------------
+
+# Crear carpeta recursiva: /calificacion/U2025/9noSemestre
+mkdir -p -path=/calificacion/U2025/9noSemestre
+
+# Crear estructura para 6to Semestre con curso MIA
+mkdir -p -path=/calificacion/U2025/6toSemestre/MIA
+mkfile -path=/calificacion/U2025/6toSemestre/MIA/lab.txt -size=5
+mkfile -path=/calificacion/U2025/6toSemestre/MIA/magis.txt -size=5
+
+# Crear estructura para curso ARQUI
+mkdir -path=/calificacion/U2025/6toSemestre/ARQUI
+mkfile -path=/calificacion/U2025/6toSemestre/ARQUI/lab.txt -size=10
+mkfile -path=/calificacion/U2025/6toSemestre/ARQUI/magis.txt -size=10
+
+# Crear estructura para curso COMPI
+mkdir -path=/calificacion/U2025/6toSemestre/COMPI
+mkfile -path=/calificacion/U2025/6toSemestre/COMPI/lab.txt -size=30
+mkfile -path=/calificacion/U2025/6toSemestre/COMPI/magis.txt -size=30
+
+
+# -------------------------------------------------------------------------------
+# 3.2 CREACION DE CARPETAS Y ARCHIVOS DE PRUEBA [PROYECTO 1]
+# -------------------------------------------------------------------------------
+# Comandos: MKDIR, MKFILE
+# Objetivo: Crear archivos para probar comandos nuevos del Proyecto 2
+# -------------------------------------------------------------------------------
+
+# Carpeta TEST con archivos de diferentes tamaños
+mkdir -path=/calificacion/TEST
+mkfile -path=/calificacion/TEST/carnet.txt -size=768
+mkfile -path=/calificacion/TEST/borrar.txt -size=768
+mkdir -path=/calificacion/TEST/BORRAME
+mkfile -path=/calificacion/TEST/cambiar_nombre.txt -size=768
+
+# Carpeta COPY_TEST para pruebas de copia
+mkdir -path=/calificacion/COPY_TEST
+mkfile -path=/calificacion/COPY_TEST/moveme.txt -size=768
+
+# Archivo sin tamaño especificado (contenido vacío)
+mkfile -path=/calificacion/TEST/nombre.txt
+
+# Carpeta MOVE para pruebas de movimiento
+mkdir -path=/calificacion/MOVE
+
+
+# ===============================================================================
+# SECCION 4: PRUEBAS DE COMANDOS NUEVOS - PROYECTO 2
+# ===============================================================================
+
+# -------------------------------------------------------------------------------
+# 4.1 COMANDO REMOVE [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: REMOVE (nueva funcionalidad)
+# Objetivo: Eliminar archivos y carpetas
+# Valida permisos de escritura del usuario actual
+# -------------------------------------------------------------------------------
+
+# Borrar archivo individual
+# Resultado esperado: borrar.txt eliminado si el usuario tiene permisos de escritura
+remove -path=/calificacion/TEST/borrar.txt
+
+# Borrar carpeta completa
+# Resultado esperado: BORRAME y su contenido eliminado
+remove -path=/calificacion/TEST/BORRAME
+
+
+# -------------------------------------------------------------------------------
+# 4.2 COMANDO EDIT [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: EDIT (nueva funcionalidad)
+# Objetivo: Modificar el contenido de un archivo existente
+# Requiere permisos de lectura y escritura
+#
+# ⚠️ ARCHIVO FISICO REQUERIDO:
+# Debes crear un archivo .txt físicamente en tu computadora con el contenido
+# que deseas insertar. Por ejemplo:
+#   C:/Users/Revy/Desktop/Revydubz.txt
+#
+# Contenido sugerido del archivo:
+#   "Este es el nuevo contenido del archivo editado desde un archivo externo"
+#
+# IMPORTANTE: El archivo debe existir en la ruta especificada
+# -------------------------------------------------------------------------------
+
+edit -path=/calificacion/TEST/nombre.txt -contenido=C:/Users/Revy/Desktop/Revydubz.txt
+
+
+# -------------------------------------------------------------------------------
+# 4.3 COMANDO RENAME [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: RENAME (nueva funcionalidad)
+# Objetivo: Cambiar el nombre de un archivo
+# Valida que no exista otro archivo con el nuevo nombre
+# Requiere permisos de escritura
+# -------------------------------------------------------------------------------
+
+# Renombrar cambiar_nombre.txt -> cambiado.txt
+# Resultado esperado: Archivo renombrado exitosamente
+rename -path=/calificacion/TEST/cambiar_nombre.txt -name=cambiado.txt
+
+
+# -------------------------------------------------------------------------------
+# 4.4 COMANDO COPY [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: COPY (nueva funcionalidad)
+# Objetivo: Copiar carpeta completa con todo su contenido
+# Solo copia archivos/carpetas con permisos de lectura
+# Requiere permisos de escritura en destino
+# -------------------------------------------------------------------------------
+
+# Copiar carpeta TEST a COPY_TEST
+# Resultado esperado: Todos los archivos con permisos de lectura son copiados
+copy -path=/calificacion/TEST -destino=/calificacion/COPY_TEST
+
+
+# -------------------------------------------------------------------------------
+# 4.5 COMANDO MOVE [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: MOVE (nueva funcionalidad)
+# Objetivo: Mover archivo de una carpeta a otra
+# Si origen y destino están en la misma partición, solo cambia referencias
+# Requiere permisos de escritura en origen
+# -------------------------------------------------------------------------------
+
+# Mover moveme.txt de COPY_TEST a MOVE
+# Resultado esperado: Archivo movido, referencias actualizadas
+move -path=/calificacion/COPY_TEST/moveme.txt -destino=/calificacion/MOVE
+
+
+# -------------------------------------------------------------------------------
+# 4.6 COMANDO FIND [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: FIND (nueva funcionalidad)
+# Objetivo: Buscar archivos/carpetas por patrón de nombre
+# Soporta comodines: ? (un carácter), * (uno o más caracteres)
+# Solo muestra archivos/carpetas con permisos de lectura
+# -------------------------------------------------------------------------------
+
+# Buscar todos los archivos desde la raíz
+# Resultado esperado: Lista de todos los archivos/carpetas accesibles
+find -path="/" -name="*"
+
+
+# -------------------------------------------------------------------------------
+# 4.7 COMANDO CHOWN [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: CHOWN (nueva funcionalidad)
+# Objetivo: Cambiar el propietario de un archivo/carpeta
+# Solo root puede ejecutar en todos los archivos
+# Otros usuarios solo en sus propios archivos
+# -------------------------------------------------------------------------------
+
+# Intento de cambiar propietario a usuario inexistente
+# Resultado esperado: ERROR - Usuario no existe
+chown -path=/calificacion -usuario=user_no_existe
+
+
+# -------------------------------------------------------------------------------
+# 4.8 COMANDO CHMOD [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: CHMOD (nueva funcionalidad)
+# Objetivo: Cambiar permisos de archivo/carpeta
+# Formato UGO (User-Group-Others): 777 = rwxrwxrwx
+# -------------------------------------------------------------------------------
+
+# Cambiar permisos de carpeta TEST a 777 (todos los permisos)
+# Resultado esperado: Permisos actualizados a rwxrwxrwx
+chmod -path=/calificacion/TEST -ugo=777
+
+
+# -------------------------------------------------------------------------------
+# 4.9 LOGOUT [PROYECTO 1]
+# -------------------------------------------------------------------------------
+# Comando: LOGOUT
+# Objetivo: Cerrar sesión del usuario actual
+# Resultado esperado: Sesión cerrada, no se pueden ejecutar comandos de archivos
+# -------------------------------------------------------------------------------
+
+logout
+
+
+# ===============================================================================
+# SECCION 5: JOURNALING Y RECUPERACION - CARACTERISTICAS EXT3
+# ===============================================================================
+
+# -------------------------------------------------------------------------------
+# 5.1 VISUALIZACION DEL JOURNAL [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: JOURNALING (nueva funcionalidad)
+# Objetivo: Mostrar todas las operaciones registradas en el journaling
+# Debe mostrar: operación, ruta, contenido, fecha
+# IMPORTANTE: Debe visualizarse en la interfaz gráfica web
+# -------------------------------------------------------------------------------
+
+journaling -id=681A
+
+
+# -------------------------------------------------------------------------------
+# 5.2 SIMULACION DE PERDIDA DEL SISTEMA [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: LOSS (nueva funcionalidad)
+# Objetivo: Simular un fallo en el disco limpiando estructuras críticas
+# Limpia: Bitmap de Inodos, Bitmap de Bloques, Área de Inodos, Área de Bloques
+# NO limpia: Superbloque y Journal (necesarios para recuperación)
+# -------------------------------------------------------------------------------
+
+loss -id=681A
+
+
+# -------------------------------------------------------------------------------
+# 5.3 RECUPERACION DEL SISTEMA [PROYECTO 2 - NUEVO]
+# -------------------------------------------------------------------------------
+# Comando: RECOVERY (nueva funcionalidad)
+# Objetivo: Restaurar el sistema usando el journal y superbloque
+# Reconstruye todas las estructuras al estado anterior al último formateo
+# Resultado esperado: Sistema de archivos recuperado exitosamente
+# -------------------------------------------------------------------------------
+
+recovery -id=681A
+
+
+# -------------------------------------------------------------------------------
+# 5.4 VERIFICACION POST-RECUPERACION [PROYECTO 1]
+# -------------------------------------------------------------------------------
+# Comando: LOGIN
+# Objetivo: Comprobar que el sistema se recuperó correctamente
+# Iniciar sesión nuevamente para verificar acceso
+# -------------------------------------------------------------------------------
+
+login -user=root -pass=123 -id=681A
+
+
+# ===============================================================================
+# FIN DEL ARCHIVO DE PRUEBA
+# ===============================================================================
+# Resultado esperado final:
+#   - Sistema de archivos EXT3 funcional
+#   - Todas las operaciones CRUD ejecutadas correctamente
+#   - Journaling registrando todas las transacciones
+#   - Recuperación exitosa después de simulación de pérdida
+# ===============================================================================
