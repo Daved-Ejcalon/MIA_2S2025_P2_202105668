@@ -78,10 +78,7 @@ Muestra tarjetas con información de todos los discos creados.
 - Algoritmo de ajuste (FF, BF, WF)
 - Número de particiones montadas
 
-**Imagen sugerida:** [Screenshot mostrando 2-3 tarjetas de discos con sus datos]
-
-![Vista de Discos](https://via.placeholder.com/800x400?text=Vista+de+Seleccion+de+Discos)
-*Imagen: Grid de tarjetas mostrando Disco1.mia (60 MB) y Disco2.mia (2 KB)*
+![Vista de Discos](https://i.ibb.co/nMfcv00k/PI-MIA-1.png)
 
 #### Nivel 2: Selección de Partición
 
@@ -94,10 +91,6 @@ Al hacer clic en un disco, muestra sus particiones.
 - Tamaño
 - Algoritmo de ajuste
 
-**Imagen sugerida:** [Screenshot mostrando particiones, unas montadas y otras no]
-
-![Vista de Particiones](https://via.placeholder.com/800x400?text=Vista+de+Particiones+del+Disco)
-*Imagen: Lista de particiones con Part1 MONTADA (ID: 681a) y Part2 NO MONTADA*
 
 #### Nivel 3: Explorador de Archivos
 
@@ -114,10 +107,7 @@ Al hacer clic en una partición montada, muestra su contenido.
 - Permisos (ej: 664, 755)
 - Tamaño (solo archivos)
 
-**Imagen sugerida:** [Screenshot del explorador mostrando carpetas y archivos]
-
-![Explorador de Archivos](https://via.placeholder.com/800x400?text=Explorador+de+Archivos+EXT3)
-*Imagen: Grid mostrando carpetas MIA, ARQUI, COMPI y archivos lab.txt, magis.txt*
+![Explorador de Archivos](https://i.ibb.co/WN4FHxZf/PI-MIA-4.png)
 
 **Navegación:**
 - **Click en carpeta** → Entra a la carpeta
@@ -125,6 +115,7 @@ Al hacer clic en una partición montada, muestra su contenido.
 - **Botón "Raíz"** → Vuelve al directorio raíz
 - **Botón "Volver a Particiones"** → Regresa a la vista de particiones
 
+![Login](https://i.ibb.co/9mbcz7fC/PI-MIA-2.png)
 ---
 
 ## Comandos del Sistema
@@ -135,11 +126,6 @@ Al hacer clic en una partición montada, muestra su contenido.
 
 Crea un archivo binario que simula un disco duro.
 
-**Sintaxis:**
-```bash
-mkdisk -size=<tamaño> -unit=<unidad> -fit=<ajuste> -path=<ruta>
-```
-
 **Parámetros:**
 - `-size` - Tamaño del disco (requerido)
 - `-unit` - Unidad: `K` (KB), `M` (MB), `G` (GB). Default: M
@@ -148,30 +134,18 @@ mkdisk -size=<tamaño> -unit=<unidad> -fit=<ajuste> -path=<ruta>
 
 **Ejemplos:**
 ```bash
-# Crear disco de 60 MB
 mkdisk -size=60 -unit=M -fit=FF -path=C:/Discos/Disco1.mia
-
-# Crear disco de 2 KB
 mkdisk -size=2 -unit=K -path=C:/Discos/Disco2.mia
 ```
-
-**Imagen sugerida:** [Screenshot del comando ejecutándose exitosamente]
 
 #### RMDISK - Eliminar Disco
 
 Elimina un disco virtual del sistema.
 
-**Sintaxis:**
-```bash
-rmdisk -path=<ruta>
-```
-
 **Ejemplo:**
 ```bash
 rmdisk -path=C:/Discos/Disco1.mia
 ```
-
-**Nota:** Solicita confirmación antes de eliminar.
 
 ---
 
@@ -180,11 +154,6 @@ rmdisk -path=C:/Discos/Disco1.mia
 #### FDISK - Crear Partición
 
 Crea particiones primarias, extendidas o lógicas en un disco.
-
-**Sintaxis:**
-```bash
-fdisk -size=<tamaño> -unit=<unidad> -path=<ruta> -type=<tipo> -fit=<ajuste> -name=<nombre>
-```
 
 **Parámetros:**
 - `-size` - Tamaño de la partición (requerido para crear)
@@ -196,26 +165,14 @@ fdisk -size=<tamaño> -unit=<unidad> -path=<ruta> -type=<tipo> -fit=<ajuste> -na
 
 **Ejemplos:**
 ```bash
-# Partición primaria de 20 MB
 fdisk -type=P -unit=b -name=Part1 -size=20971520 -path=C:/Discos/Disco1.mia -fit=BF
-
-# Partición extendida
 fdisk -type=E -unit=M -name=PartExt -size=30 -path=C:/Discos/Disco1.mia
-
-# Partición lógica (dentro de extendida)
 fdisk -type=L -unit=M -name=PartLog1 -size=10 -path=C:/Discos/Disco1.mia
 ```
-
-**Imagen sugerida:** [Screenshot mostrando la creación de varias particiones]
 
 #### FDISK -delete - Eliminar Partición [NUEVO P2]
 
 Elimina una partición existente.
-
-**Sintaxis:**
-```bash
-fdisk -delete=<modo> -path=<ruta> -name=<nombre>
-```
 
 **Parámetros:**
 - `-delete` - Modo: `fast` (rápida) o `full` (completa con borrado)
@@ -224,23 +181,13 @@ fdisk -delete=<modo> -path=<ruta> -name=<nombre>
 
 **Ejemplos:**
 ```bash
-# Eliminación rápida
 fdisk -delete=fast -name=Part3 -path=C:/Discos/Disco1.mia
-
-# Eliminación completa (sobrescribe con ceros)
 fdisk -delete=full -name=Part4 -path=C:/Discos/Disco1.mia
 ```
-
-**Imagen sugerida:** [Screenshot del comando delete ejecutándose]
 
 #### FDISK -add - Modificar Tamaño [NUEVO P2]
 
 Aumenta o reduce el tamaño de una partición.
-
-**Sintaxis:**
-```bash
-fdisk -add=<cantidad> -unit=<unidad> -path=<ruta> -name=<nombre>
-```
 
 **Parámetros:**
 - `-add` - Cantidad a agregar (positivo) o quitar (negativo)
@@ -250,14 +197,9 @@ fdisk -add=<cantidad> -unit=<unidad> -path=<ruta> -name=<nombre>
 
 **Ejemplos:**
 ```bash
-# Reducir 500 KB
 fdisk -add=-500 -unit=k -path=C:/Discos/Disco1.mia -name=Part2
-
-# Aumentar 200 KB
 fdisk -add=200 -unit=k -path=C:/Discos/Disco1.mia -name=Part2
 ```
-
-**Nota:** El parámetro `-add` tiene prioridad sobre `-size`.
 
 ---
 
@@ -267,51 +209,31 @@ fdisk -add=200 -unit=k -path=C:/Discos/Disco1.mia -name=Part2
 
 Monta una partición para poder usarla. Genera un ID único.
 
-**Sintaxis:**
-```bash
-mount -path=<ruta> -name=<nombre>
-```
-
-**Ejemplo (entrada):**
+**Ejemplo:**
 ```bash
 mount -path=C:/Discos/Disco1.mia -name=Part1
 ```
 
-**Salida:** identificador de montaje asignado (ID)
-
 **Formato del ID:** `[últimos 2 dígitos del carnet][correlativo][letra del disco]`
 - Ejemplo: **681a** → carnet termina en 68, correlativo 1, disco A
-
-**Imagen sugerida:** [Screenshot mostrando particiones montadas con sus IDs]
 
 #### UNMOUNT - Desmontar Partición [NUEVO P2]
 
 Desmonta una partición previamente montada.
-
-**Sintaxis:**
-```bash
-unmount -id=<id>
-```
 
 **Ejemplo:**
 ```bash
 unmount -id=682a
 ```
 
-**Imagen sugerida:** [Screenshot del comando unmount]
-
 #### MOUNTED - Ver Particiones Montadas
 
 Muestra todas las particiones actualmente montadas.
 
-**Sintaxis:**
+**Ejemplo:**
 ```bash
 mounted
 ```
-
-**Salida:** lista compacta de particiones montadas
-
-**Imagen sugerida:** [Screenshot de la tabla de particiones montadas]
 
 ---
 
@@ -321,11 +243,6 @@ mounted
 
 Crea un sistema de archivos EXT2 o EXT3 en una partición montada.
 
-**Sintaxis:**
-```bash
-mkfs -type=<tipo> -id=<id> -fs=<sistema>
-```
-
 **Parámetros:**
 - `-type` - Tipo de formateo: `full` (completo). Default: full
 - `-id` - ID de la partición montada (requerido)
@@ -333,10 +250,7 @@ mkfs -type=<tipo> -id=<id> -fs=<sistema>
 
 **Ejemplos:**
 ```bash
-# Formatear con EXT2
 mkfs -type=full -id=681a -fs=2fs
-
-# Formatear con EXT3 (incluye journaling)
 mkfs -type=full -id=681a -fs=3fs
 ```
 
@@ -344,8 +258,6 @@ mkfs -type=full -id=681a -fs=3fs
 - ✅ Si necesita recuperación ante fallos (comando RECOVERY)
 - ✅ Si quiere registro de transacciones (journaling)
 - ⚠️ Ocupa 8 KB adicionales para el journal
-
-**Imagen sugerida:** [Screenshot comparando EXT2 vs EXT3]
 
 ---
 
@@ -355,11 +267,6 @@ mkfs -type=full -id=681a -fs=3fs
 
 Autentica un usuario en el sistema.
 
-**Sintaxis:**
-```bash
-login -user=<usuario> -pass=<contraseña> -id=<id>
-```
-
 **Ejemplo:**
 ```bash
 login -user=root -pass=123 -id=681a
@@ -367,18 +274,16 @@ login -user=root -pass=123 -id=681a
 
 **Usuario por defecto:** `root` / `123`
 
-**Imagen sugerida:** [Screenshot del login exitoso]
-
 #### LOGOUT - Cerrar Sesión [NUEVO P2]
 
 Cierra la sesión actual del usuario.
 
-**Sintaxis:**
+**Ejemplo:**
 ```bash
 logout
 ```
 
-**Imagen sugerida:** [Screenshot del logout]
+
 
 #### MKGRP - Crear Grupo
 
@@ -408,7 +313,7 @@ mkusr -user=<usuario> -pass=<contraseña> -grp=<grupo>
 mkusr -user=pedro -pass=abc123 -grp=desarrolladores
 ```
 
-**Imagen sugerida:** [Screenshot mostrando creación de grupos y usuarios]
+
 
 #### RMGRP - Eliminar Grupo
 
@@ -454,7 +359,7 @@ mkdir -path=/documentos
 mkdir -p -path=/calificacion/U2025/6toSemestre/MIA
 ```
 
-**Imagen sugerida:** [Screenshot mostrando estructura de carpetas creadas]
+
 
 #### MKFILE - Crear Archivo
 
@@ -479,7 +384,7 @@ mkfile -path=/documentos/archivo.txt -size=100
 mkfile -path=/documentos/tarea.txt -cont=C:/Users/local/tarea.txt
 ```
 
-**Imagen sugerida:** [Screenshot del comando mkfile y resultado]
+
 
 #### CAT - Mostrar Contenido
 
@@ -502,7 +407,7 @@ cat -file1=/documentos/archivo.txt
 cat -file1=/docs/a.txt -file2=/docs/b.txt -file3=/docs/c.txt
 ```
 
-**Imagen sugerida:** [Screenshot mostrando contenido de varios archivos]
+
 
 ---
 
@@ -522,7 +427,7 @@ copy -path=<origen> -dest=<destino>
 copy -path=/documentos/original.txt -dest=/respaldo/copia.txt
 ```
 
-**Imagen sugerida:** [Screenshot del comando copy]
+
 
 #### MOVE - Mover Archivo
 
@@ -538,7 +443,7 @@ move -path=<origen> -dest=<destino>
 move -path=/temporal/archivo.txt -dest=/permanente/
 ```
 
-**Imagen sugerida:** [Screenshot del comando move]
+
 
 #### RENAME - Renombrar
 
@@ -554,7 +459,7 @@ rename -path=<ruta> -name=<nuevo_nombre>
 rename -path=/documentos/viejo.txt -name=nuevo.txt
 ```
 
-**Imagen sugerida:** [Screenshot del comando rename]
+
 
 #### REMOVE - Eliminar Archivo
 
@@ -572,7 +477,7 @@ remove -path=/temporal/basura.txt
 
 **⚠️ Advertencia:** Esta acción no se puede deshacer (a menos que use RECOVERY en EXT3).
 
-**Imagen sugerida:** [Screenshot del comando remove con confirmación]
+
 
 #### EDIT - Editar Contenido [NO IMPLEMENTADO AÚN]
 
@@ -583,7 +488,7 @@ Edita el contenido de un archivo.
 edit -path=<ruta> -content=<contenido>
 ```
 
-**Nota:** Esta funcionalidad será implementada en futuras versiones.
+
 
 #### FIND - Buscar Archivos
 
@@ -603,7 +508,7 @@ find -path=/documentos -name=*.txt
 find -path=/ -name=tarea.txt
 ```
 
-**Imagen sugerida:** [Screenshot mostrando resultados de búsqueda]
+
 
 ---
 
@@ -647,7 +552,7 @@ chmod -path=/carpeta -ugo=755
 
 **Restricción:** Solo el propietario o root puede ejecutar este comando.
 
-**Imagen sugerida:** [Screenshot mostrando cambio de permisos]
+
 
 #### CHOWN - Cambiar Propietario
 
@@ -663,7 +568,7 @@ chown -path=<ruta> -user=<usuario>
 chown -path=/documentos/archivo.txt -user=pedro
 ```
 
-**Imagen sugerida:** [Screenshot del comando chown]
+
 
 #### CHGRP - Cambiar Grupo
 
@@ -679,7 +584,7 @@ chgrp -path=<ruta> -grp=<grupo>
 chgrp -path=/proyecto -grp=desarrolladores
 ```
 
-**Imagen sugerida:** [Screenshot del comando chgrp]
+
 
 ---
 
@@ -699,9 +604,9 @@ journaling -id=<id>
 journaling -id=681a
 ```
 
-**Salida:** resumen del journal (lista de entradas y metadatos)
 
-**Imagen sugerida:** [Screenshot del journal mostrando varias operaciones]
+
+
 
 #### LOSS - Simular Pérdida
 
@@ -719,7 +624,7 @@ loss -id=681a
 
 **⚠️ Advertencia:** Este comando corrompe las estructuras del sistema de archivos. Úselo solo para demostrar la recuperación.
 
-**Imagen sugerida:** [Screenshot mostrando el sistema corrupto]
+
 
 #### RECOVERY - Recuperar Sistema
 
@@ -741,9 +646,9 @@ recovery -id=681a
 3. Restaura archivos y directorios
 4. Reporta operaciones recuperadas
 
-**Salida:** resumen de la recuperación (operaciones reproducidas)
 
-**Imagen sugerida:** [Screenshot mostrando el proceso de recuperación completo]
+
+
 
 ---
 
@@ -767,7 +672,7 @@ Muestra la estructura del MBR y particiones.
 rep -id=681a -path=C:/Reportes/mbr.jpg -name=mbr
 ```
 
-**Imagen sugerida:** [Ejemplo de reporte MBR con tabla de particiones]
+
 
 ##### 2. DISK Report
 Visualiza el uso del disco con gráfico de barras.
@@ -776,7 +681,7 @@ Visualiza el uso del disco con gráfico de barras.
 rep -id=681a -path=C:/Reportes/disk.jpg -name=disk
 ```
 
-**Imagen sugerida:** [Ejemplo de reporte DISK mostrando particiones en colores]
+
 
 ##### 3. SuperBlock Report
 Muestra información del SuperBloque (EXT2/EXT3).
@@ -785,7 +690,7 @@ Muestra información del SuperBloque (EXT2/EXT3).
 rep -id=681a -path=C:/Reportes/sb.jpg -name=sb
 ```
 
-**Imagen sugerida:** [Ejemplo de reporte SuperBloque con metadata del filesystem]
+
 
 ##### 4. Inode Report
 Muestra la estructura de un inodo específico.
@@ -794,7 +699,7 @@ Muestra la estructura de un inodo específico.
 rep -id=681a -path=C:/Reportes/inode.jpg -name=inode
 ```
 
-**Imagen sugerida:** [Ejemplo de reporte Inode con bloques y permisos]
+
 
 ##### 5. File Report
 Muestra el contenido de un archivo con formato tabular.
@@ -803,7 +708,7 @@ Muestra el contenido de un archivo con formato tabular.
 rep -id=681a -path=C:/Reportes/file.jpg -path_file_ls=/archivo.txt -name=file
 ```
 
-**Imagen sugerida:** [Ejemplo de reporte FILE mostrando contenido en tabla]
+
 
 ##### 6. LS Report
 Lista el contenido de un directorio (árbol recursivo).
@@ -812,7 +717,7 @@ Lista el contenido de un directorio (árbol recursivo).
 rep -id=681a -path=C:/Reportes/ls.jpg -path_file_ls=/documentos -name=ls
 ```
 
-**Imagen sugerida:** [Ejemplo de reporte LS con estructura de árbol]
+
 
 ##### 7. EBR Report [NUEVO P2]
 Muestra la estructura de particiones lógicas (EBR).
@@ -821,7 +726,7 @@ Muestra la estructura de particiones lógicas (EBR).
 rep -id=681a -path=C:/Reportes/ebr.jpg -name=ebr
 ```
 
-**Imagen sugerida:** [Ejemplo de reporte EBR con particiones lógicas]
+
 
 ---
 
@@ -859,7 +764,7 @@ mkfs -type=full -id=681a -fs=3fs
 login -user=root -pass=123 -id=681a
 ```
 
-**Imagen sugerida:** [Screenshot mostrando todos los comandos ejecutados exitosamente]
+
 
 ---
 
@@ -889,7 +794,7 @@ mkfile -path=/Universidad/2025/Semestre6/Arqui/practica.txt -size=300
    - Seleccionar la partición
    - Explorar carpetas visualmente
 
-**Imagen sugerida:** [Screenshot del explorador web mostrando la estructura creada]
+
 
 ---
 
@@ -923,7 +828,7 @@ chmod -path=/compartido/notas.txt -ugo=644
 chgrp -path=/compartido/notas.txt -grp=profesores
 ```
 
-**Imagen sugerida:** [Screenshot mostrando la creación de usuarios y asignación de permisos]
+
 
 ---
 
@@ -967,7 +872,7 @@ recovery -id=681a
 cat -file1=/importante/documentos/datos.txt
 ```
 
-**Imagen sugerida:** [Screenshot mostrando el antes/después de LOSS y RECOVERY]
+
 
 ---
 
@@ -1004,125 +909,3 @@ move -path=/definitivo/final.txt -dest=/archivo/
 ```bash
 remove -path=/temporal/borrador.txt
 ```
-
-**Imagen sugerida:** [Screenshot mostrando la secuencia de operaciones]
-
----
-
-## Solución de Problemas
-
-### Error: "Partición no montada"
-
-**Problema:** Intentó ejecutar un comando que requiere una partición montada.
-
-**Solución:**
-1. Verifique particiones montadas: `mounted`
-2. Monte la partición necesaria: `mount -path=... -name=...`
-
-### Error: "Debe iniciar sesión para usar este comando"
-
-**Problema:** Intentó ejecutar un comando protegido sin sesión activa.
-
-**Solución:**
-```bash
-login -user=root -pass=123 -id=681a
-```
-
-### Error: "Permiso denegado"
-
-**Problema:** No tiene permisos suficientes para la operación.
-
-**Solución:**
-- Inicie sesión como root, o
-- Solicite al administrador que cambie los permisos con `chmod`
-
-### Error: "El journal está vacío" (RECOVERY)
-
-**Problema:** Intentó recuperar un sistema EXT2 (sin journaling).
-
-**Solución:**
-- RECOVERY solo funciona con particiones formateadas con `-fs=3fs`
-- Reformatee con EXT3 si necesita esta funcionalidad
-
-### Interfaz web no carga archivos
-
-**Problema:** El explorador web no muestra contenido de la partición.
-
-**Solución:**
-1. Verifique que el backend esté corriendo (puerto 8080)
-2. Verifique que la partición esté montada
-3. Verifique que la partición esté formateada (MKFS)
-4. Inicie sesión (LOGIN) antes de explorar
-
-**Imagen sugerida:** [Screenshot mostrando mensajes de error comunes]
-
----
-
-## Preguntas Frecuentes (FAQ)
-
-### ¿Cuál es la diferencia entre EXT2 y EXT3?
-
-**EXT2:**
-- ✅ Más rápido
-- ✅ Ocupa menos espacio
-- ❌ Sin recuperación ante fallos
-- ❌ Sin journaling
-
-**EXT3:**
-- ✅ Journaling (registro de transacciones)
-- ✅ Recuperación con comando RECOVERY
-- ✅ Más seguro
-- ❌ Ocupa 8 KB extra
-
-### ¿Puedo recuperar archivos eliminados?
-
-- **En EXT2:** No, la eliminación es permanente
-- **En EXT3:** Sí, si usó LOSS después de crear archivos y luego ejecuta RECOVERY
-
-### ¿Cuántas particiones puedo crear?
-
-- **Primarias:** Máximo 4
-- **Extendidas:** Máximo 1 (cuenta como primaria)
-- **Lógicas:** Ilimitadas (dentro de la extendida)
-
-### ¿Los archivos .mia son compatibles entre Windows y Linux?
-
-Sí, son archivos binarios multiplataforma. Puede crear en Windows y leer en Linux, o viceversa.
-
-### ¿Puedo usar la interfaz web y la terminal al mismo tiempo?
-
-Sí, ambas interfaces acceden al mismo backend. Los cambios realizados en una se reflejan en la otra.
-
----
-
-## Conclusión
-
-**MIA File System** es una herramienta completa para simular y comprender el funcionamiento de sistemas de archivos modernos (EXT2/EXT3).
-
-**Características principales:**
-- ✅ Gestión completa de discos y particiones
-- ✅ Sistema de archivos EXT2/EXT3 funcional
-- ✅ Journaling y recuperación ante fallos
-- ✅ Interfaz web moderna para navegación visual
-- ✅ Sistema de usuarios y permisos Unix
-- ✅ Operaciones avanzadas de archivos
-- ✅ Reportes visuales con Graphviz
-
-**Casos de uso:**
-- 📚 Aprendizaje de sistemas operativos
-- 🔬 Experimentación con sistemas de archivos
-- 🛠️ Demostración de journaling y recuperación
-- 📊 Visualización de estructuras de datos
-
-**Soporte:**
-- Documentación completa en `/Documentacion/Manuales/`
-- Manual técnico para desarrolladores
-- Ejemplos de entrada en `/Documentacion/Entrada/`
-
----
-
-**Versión:** 2.0 - Proyecto 2
-**Fecha:** Enero 2025
-**Autor:** Daved Abshalon Ejcalon Chonay - 202105668
-**Curso:** Manejo e Implementación de Archivos (MIA)
-**Universidad de San Carlos de Guatemala - USAC**
